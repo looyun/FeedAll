@@ -1,5 +1,4 @@
 # FeedAll
-=======================
 A feed reader writen in Golang .
 ## About
 FeedAll is a pratice project writen in Golang.
