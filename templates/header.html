@@ -1,0 +1,118 @@
+{{define "header"}}
+<!DOCTYPE html>
+<html>
+
+<head>
+    <link href="/css/materialize.min.css" rel="stylesheet">
+    <script src="/js/jquery-3.1.0.min.js"></script>
+    <script src="/js/materialize.min.js"></script>
+    <link href="https://fonts.googleapis.com/icon?family=Material+Icons" rel="stylesheet">
+    <style>
+    body {
+        overflow-y: scroll;
+    }
+    
+    @media only screen and (min-width: 992px) {
+        main {
+            padding-left: 300px;
+        }
+    }
+    
+    img {
+        max-width: 854px;
+        height: auto;
+        object-fit: contain;
+    }
+    
+    input[type=add] {
+        outline: none;
+        width: 75%;
+        border: 0px dotted #000;
+    }
+    
+    .input-field {
+        width: 75%;
+        margin-left: 30px;
+    }
+    
+    pre {
+        background-color: #F3F3F3;
+    }
+    
+    code {
+        white-space: normal;
+    }
+    
+    .collapsible1 {
+        width: 210px;
+        margin-left: 70px;
+        margin-right: 90px;
+    }
+    
+    .collapsible2 {
+        margin: 0rem 0 0rem 0;
+    }
+    
+    .collapsible {
+        border: 0;
+        margin: 0rem 0 0rem 0;
+    }
+    
+    .collapsible-body p {
+        padding: 0.1rem;
+    }
+    /*
+    .collapsible-right {
+        margin: 1rem 0 1rem 300px;
+    }*/
+    
+    h3 {
+        font-size: 1.2rem;
+    }
+    
+    h2 {
+        font-size: 1.5rem;
+    }
+    
+    h1 {
+        font-size: 1.8rem;
+    }
+    
+    .container {
+        width: 95%;
+    }
+    /**/
+    
+    .feed_title {
+        font-weight: normal;
+        float: left;
+        width: 130px;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-right: 10px;
+        text-overflow: ellipsis;
+    }
+    
+    .article_title {
+        font-weight: bold;
+        float: left;
+        width: 550px;
+        white-space: nowrap;
+        overflow: hidden;
+        margin-right: 10px;
+        text-overflow: ellipsis;
+    }
+    
+    .section {
+        height: 500px;
+    }
+    
+    #welcome-button {
+        margin-top: 80px;
+    }
+    
+    #or {
+        top: 520px;
+    }
+    </style>
+    {{end}}

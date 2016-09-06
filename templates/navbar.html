@@ -1,0 +1,21 @@
+{{define "navbar"}}
+<!-- Uses a header that scrolls with the text, rather than staying
+  locked at the top -->
+<nav class="top-nav white">
+    <div class="container">
+        <div class="nav-wrapper blue">
+            <a href="/" class="brand-logo waves-effect waves-light black-text"><i class="material-icons">home</i>Feedall</a>
+            <ul class="right hide-on-med-and-down">
+                {{if .IsLogin}}
+                <li><a class="waves-effect waves-light black-text" href="/manage">Manage</a></li>
+
+                <li><a class="waves-effect waves-light black-text" href="/user/login?exit=true">Logout</a></li>
+                {{else}}
+                <li><a class="waves-effect waves-light black-text" href="/user/register">Register</a></li>
+                <li><a class="waves-effect waves-light black-text" href="/user/login">Login</a></li>
+                {{end}}
+            </ul>
+        </div>
+    </div>
+</nav>
+{{end}}

@@ -1,0 +1,158 @@
+{{template "header"}}
+<title>FeedAll</title>
+</head>
+
+<body>
+    <header>
+        <ul id="slide-out" class="side-nav grey darken-3 fixed">
+            <li>
+                <div class="container">
+                    <form method="post" action="/add">
+                        <div class="input-field">
+                            <input class="validate white-text" name="feedurl" type="text" placeholder="Paste feed URL here and enter...">
+                        </div>
+                    </form>
+                </div>
+            </li>
+            <li>
+                <div class="collapsible-header waves-effect white-text"><i class="material-icons">label_outline</i><a class="white-text" href="/"> Allfeed</a></div>
+            </li>
+            <li>
+                <div class="divider grey darken-3 "></div>
+            </li>
+            {{range .Feed}}
+            <li>
+                <div class="collapsible-header waves-effect white-text" style="width:280px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; border:1px"><i class="material-icons">label_outline</i><a class=" grey-text lighten-3" href="/feed?feedlink={{UrlParse .FeedLink}}">{{str2html .Title}}</a></div>
+            </li>
+            {{end}}
+        </ul>
+    </header>
+    <main>
+        <!-- <div class="col s3">
+            <ul class="collapsible collapsible1" data-collapsible="expandable">
+                <li>
+                    <div class="collapsible-header blue white-text waves-effect waves-light"><i class="material-icons">group_work</i>Manage</div>
+                </li>
+                <li>
+                    <div class="collapsible-header teal white-text waves-effect waves-light"><i class="material-icons">group_work</i>Things</div>
+                </li>
+                <li>
+                    <div class="collapsible-header yellow darken-1 white-text waves-effect waves-light"><i class="material-icons">star border</i>Star Feed</div>
+                </li>
+                <li>
+                    <div class="collapsible-header active red white-text waves-effect waves-light"><i class="material-icons">list</i>All Feed</div>
+                    {{if .Hello}} {{else}}
+                    <div class="collapsible-body">
+                        <ul class="collapsible collapsible2" data-collapsible="accordion">
+                            {{range .Feed}}
+                            <li>
+                                <div class="collapsible-header" style="width:200px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; border:1px"><i class="material-icons">label_outline</i><a class=" black-text" href="/feed/{{UrlParse .FeedLink}}">{{str2html .Title}}</a></div>
+                            </li>
+                            {{end}}
+                        </ul>
+                        <div href="/"></div>
+                    </div>
+                    {{end}}
+                </li>
+            </ul>
+        </div> -->
+        <div id="modal1" class="modal modal-fixed-footer">
+            <h4>Manage</h4> {{range .Feed}}
+            <li>
+                <div class="collapsible-header waves-effect white-text" style="width:280px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; border:1px"><i class="material-icons">label_outline</i><a class=" grey-text lighten-3" href="/feed?feedlink={{UrlParse .FeedLink}}">{{str2html .Title}}</a></div>
+            </li>
+            {{end}}
+            <div class="modal-footer">
+                <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat ">Disagree</a>
+                <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
+            </div>
+        </div>
+        <ul class="collapsible collapsible-right">
+            {{if .Hello}}
+            <li>
+                <div id="c" class="collapsible-header">
+                    <i class="material-icons">chat_bubble_outline</i>
+                    <a class=" black-text">"Hello,welcome to feedall.You can feed blog in manage."</a>
+                </div>
+            </li>
+            {{end}} {{if .root}}
+            <input id="feedlink" type="hidden" name="feedurl" value=""> {{else}} {{range $key,$v:=.Item}} {{if eq $key 0}}
+            <input id="feedlink" type="hidden" name="feedurl" value="{{UrlParse $v.feedLink}}">{{end}} {{end}}{{end}} {{range $key,$v:=.Item}}
+            <li>
+                <div id="/item/{{UrlParse $v.items.link}}" class="collapsible-header waves-effect collapsible-header-right scrollspy" href="#/item/{{UrlParse $v.items.link}}">
+                    <i class="material-icons">label_outline</i>
+                    <text class="feed_title black-text">{{str2html $v.title}}</text>
+                    <text class="article_title">{{$v.items.title}}</text>
+                    <a class="right" target="_blank" href="{{$v.items.link}}"><i class="material-icons">open_in_new</i></a>
+                    <a class="right">{{TimeSince $v.items.publishedParsed}}</a>
+                </div>
+                <div class="collapsible-body">
+                    <div class="container"></div>
+                </div>
+            </li>
+            {{end}}
+        </ul>
+        <div style="height:100px;">
+        </div>
+    </main>
+    <script type="text/javascript">
+    $("img").addClass("materialboxed");
+    $(document).ready(function() {
+        $('.modal-trigger').leanModal();
+    });
+
+    $(".collapsible-header-right").on('click', function(event) {
+        if (!$(this).hasClass("active")) {
+            var href = $(this).attr('href').split("#")[1];
+            var t = $(this).next(".collapsible-body").find(".container")
+            if (t.html() == "") {
+                $.ajax({
+                    url: href,
+                    type: "POST",
+                    dataType: "text",
+                    Global: false,
+                    success: function(data) {
+                        t.html(data)
+                    }
+                });
+            }
+            var title = href;
+            var url = $(this).attr('href');
+            window.history.pushState({
+                title: "feedall",
+            }, "feedall", url);
+        }
+    });
+
+    var BOTTOM_OFFSET = 0;
+    $(document).ready(function() {
+        $(window).scroll(function() {
+            var windowHeight = $(window).height();
+            var scrollTop = $(window).scrollTop();
+            var docHeight = $(document).height();
+            if ((BOTTOM_OFFSET + scrollTop) >= docHeight - windowHeight) {
+                GetMoreItems();
+            }
+        });
+    });
+
+    var i = 0;
+
+    function GetMoreItems() {
+        Materialize.toast('loading', 2000, "rounded")
+        var items = "";
+        $.ajax({
+            url: "/feed?feedlink=" + $("#feedlink").val() + "&page=" + i,
+            type: "GET",
+            dataType: "text",
+            Global: false,
+            success: function(data) {
+                $(".collapsible-right").append(data);
+            }
+        });
+        i++;
+    }
+    </script>
+</body>
+
+</html>

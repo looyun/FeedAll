@@ -1,0 +1,60 @@
+{{template "header"}}
+<title>FeedAll</title>
+</head>
+
+<body>
+    <header>
+        {{template "navbar" .}}
+    </header>
+    <div class="row container login">
+        <div class="col s3">
+        </div>
+        <form method="post" action="/user/register" class="col s6">
+            <div class="row">
+                <div class="col s12">
+                    <h2><a href="/user/register">Register</a><a class="right" href="/user/login"><h8 class="black-text">or </h8>Login</a></h2>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="username" type="text" name="username">
+                    <label for="username">Username</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <input id="password" type="password" class="validate" name="password">
+                    <label for="password">Password</label>
+                </div>
+            </div>
+            <div class="row">
+                <div class="input-field col s12">
+                    <button class="btn blue waves-effect waves-light" type="submit" name="action" onclick="return checkInput();">Register</button>
+                    <button class="right btn blue waves-effect waves-light" onclick="return backToHome();">Back</button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <script type="text/javascript">
+    function checkInput() {
+        var uname = document.getElementById("username");
+        if (uname.value.length == 0) {
+            Materialize.toast('please input account!', 4000)
+            return false
+        }
+
+        var pwd = document.getElementById("password");
+        if (pwd.value.length == 0) {
+            Materialize.toast('please input password!', 4000)
+            return false
+        }
+    }
+
+    function backToHome() {
+        window.location.href = "/";
+        return false
+    }
+    </script>
+</body>
+
+</html>

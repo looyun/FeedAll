@@ -1,0 +1,41 @@
+{{define "items"}} {{range .ITEMS}}
+<li>
+    <input id="feedlink" type="hidden" name="feedurl" value="{{UrlParse .feedLink}}">
+    <div class="collapsible-header waves-effect collapsible-header-right" href="/item/{{UrlParse .items.link}}">
+        <i class="material-icons">label_outline</i>
+        <text class="feed_title black-text">{{str2html .title}}</text>
+        <text class="article_title">{{.items.title}}</text>
+        <a class="right" target="_blank" href="{{.items.link}}"><i class="material-icons">open_in_new</i></a>
+        <a class="right">{{TimeSince .items.publishedParsed}}</a>
+    </div>
+    <div class="collapsible-body">
+        <div class="container"></div>
+    </div>
+</li>
+{{end}}
+<script type="text/javascript">
+$("img").addClass("materialboxed");
+
+
+$(".collapsible-header-right").on('click', function(event) {
+    if (!$(this).hasClass("active")) {
+        var href = $(this).attr('href');
+        var t = $(this).next(".collapsible-body").find(".container")
+        $.ajax({
+            url: href,
+            type: "POST",
+            dataType: "text",
+            Global: false,
+            success: function(data) {
+                t.html(data)
+            }
+        });
+        var title = href;
+        var url = $(this).attr('href');
+        window.history.pushState({
+            title: "feedall",
+        }, "feedall", url);
+    }
+})
+</script>
+{{end}}
