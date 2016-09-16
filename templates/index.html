@@ -28,45 +28,6 @@
         </ul>
     </header>
     <main>
-        <!-- <div class="col s3">
-            <ul class="collapsible collapsible1" data-collapsible="expandable">
-                <li>
-                    <div class="collapsible-header blue white-text waves-effect waves-light"><i class="material-icons">group_work</i>Manage</div>
-                </li>
-                <li>
-                    <div class="collapsible-header teal white-text waves-effect waves-light"><i class="material-icons">group_work</i>Things</div>
-                </li>
-                <li>
-                    <div class="collapsible-header yellow darken-1 white-text waves-effect waves-light"><i class="material-icons">star border</i>Star Feed</div>
-                </li>
-                <li>
-                    <div class="collapsible-header active red white-text waves-effect waves-light"><i class="material-icons">list</i>All Feed</div>
-                    {{if .Hello}} {{else}}
-                    <div class="collapsible-body">
-                        <ul class="collapsible collapsible2" data-collapsible="accordion">
-                            {{range .Feed}}
-                            <li>
-                                <div class="collapsible-header" style="width:200px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; border:1px"><i class="material-icons">label_outline</i><a class=" black-text" href="/feed/{{UrlParse .FeedLink}}">{{str2html .Title}}</a></div>
-                            </li>
-                            {{end}}
-                        </ul>
-                        <div href="/"></div>
-                    </div>
-                    {{end}}
-                </li>
-            </ul>
-        </div> -->
-        <div id="modal1" class="modal modal-fixed-footer">
-            <h4>Manage</h4> {{range .Feed}}
-            <li>
-                <div class="collapsible-header waves-effect white-text" style="width:280px; white-space:nowrap;overflow:hidden;text-overflow:ellipsis; border:1px"><i class="material-icons">label_outline</i><a class=" grey-text lighten-3" href="/feed?feedlink={{UrlParse .FeedLink}}">{{str2html .Title}}</a></div>
-            </li>
-            {{end}}
-            <div class="modal-footer">
-                <a href="#!" class="modal-action modal-close waves-effect waves-red btn-flat ">Disagree</a>
-                <a href="#!" class="modal-action modal-close waves-effect waves-green btn-flat ">Agree</a>
-            </div>
-        </div>
         <ul class="collapsible collapsible-right">
             {{if .Hello}}
             <li>
@@ -147,6 +108,9 @@
             dataType: "text",
             Global: false,
             success: function(data) {
+                if (data.indexOf("li") > 3) {
+                    Materialize.toast('no items more:)', 2000, "rounded")
+                };
                 $(".collapsible-right").append(data);
             }
         });
