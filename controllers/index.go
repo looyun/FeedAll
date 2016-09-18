@@ -23,18 +23,16 @@ func GetUserFeed(c *macaron.Context) {
 	user := models.User{}
 	feed := make([]*models.Feed, 0)
 	item := []bson.M{}
-	fmt.Println("hi", c.Query("feedlink"))
-	fmt.Println("hi", c.Query("page"))
 	if models.GetUserInfo(models.Users, bson.M{"username": username}, &user) == true {
 
 		if c.Query("page") != "" {
-			GetMoreItem(c, user.FeedURL)
+			GetMoreItem(c, user.Link)
 			return
 		}
 
 		fmt.Println("parse ", user.Username, " feed!")
 		models.GetFeed(models.Feeds,
-			bson.M{"feedLink": bson.M{"$in": user.FeedURL}},
+			bson.M{"feedLink": bson.M{"$in": user.Link}},
 			"items",
 			&feed)
 		if len(feed) == 0 {
@@ -65,7 +63,7 @@ func GetUserFeed(c *macaron.Context) {
 			c.Data["root"] = true
 			models.GetAllItem(models.Feeds,
 				[]bson.M{
-					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.FeedURL}}},
+					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.Link}}},
 					bson.M{"$unwind": "$items"},
 					bson.M{"$sort": bson.M{"items.publishedParsed": -1}},
 					bson.M{"$limit": 45},
@@ -80,8 +78,6 @@ func GetUserFeed(c *macaron.Context) {
 		c.Data["User"] = user
 		c.Data["Feed"] = feed
 		c.Data["Item"] = item
-
-		c.HTML(200, "index")
 	}
 }
 func GetMoreItem(c *macaron.Context, s []string) {

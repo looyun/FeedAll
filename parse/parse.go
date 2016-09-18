@@ -25,10 +25,10 @@ func Parse() {
 			fb := gofeed.NewParser()
 			for _, u := range feedlist {
 				go func(u *models.FeedList) {
-					value, err := fb.ParseURL(u.FeedURL)
+					value, err := fb.ParseURL(u.FeedLink)
 					if err != nil {
 						fmt.Println("Parse err: ", err)
-						Finish <- u.FeedURL
+						Finish <- u.FeedLink
 					} else {
 						data, err := bson.Marshal(value)
 						if err != nil {
@@ -71,7 +71,7 @@ func Parse() {
 							}
 
 						}
-						Finish <- u.FeedURL
+						Finish <- u.FeedLink
 					}
 
 				}(u)

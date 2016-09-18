@@ -103,8 +103,12 @@
         Materialize.toast('loading', 2000, "rounded")
         var items = "";
         $.ajax({
-            url: "/feed?feedlink=" + $("#feedlink").val() + "&page=" + i,
-            type: "GET",
+            url: "/feed",
+            data: {
+                feedlink: $("#feedlink").val(),
+                page: i
+            },
+            type: "POST",
             dataType: "text",
             Global: false,
             success: function(data) {

@@ -21,21 +21,21 @@ func AddFeed(c *macaron.Context) bool {
 	feedlists := make([]*models.FeedList, 0)
 	fmt.Println("start judge!")
 	//Judge if feed existed in feedlist.
-	models.GetFeedList(models.FeedLists, bson.M{"feedurl": feedurl}, &feedlists)
+	models.GetFeedList(models.FeedLists, bson.M{"feedLink": feedurl}, &feedlists)
 	fmt.Println(feedlists)
 	if len(feedlists) != 0 {
 		fmt.Println("feeds existed!")
 
 		//Judge if feed existed in user's feedurl.
 		if models.GetUserInfo(models.Users,
-			bson.M{"username": username, "feedurl": feedurl},
+			bson.M{"username": username, "Link": feedurl},
 			nil) {
 			fmt.Println("feeds existed in user's feedlist!")
 			return true
 		} else {
 			return models.UpdateUserFeed(models.Users,
 				bson.M{"username": username},
-				bson.M{"$push": bson.M{"feedurl": feedurl}})
+				bson.M{"$push": bson.M{"Link": feedurl}})
 		}
 	} else {
 		fmt.Println("Parse feeds!")
@@ -79,13 +79,13 @@ func AddFeed(c *macaron.Context) bool {
 		models.Insert(models.Feeds, feed)
 		fmt.Println("inserted feeds!")
 
-		return models.Insert(models.FeedLists, bson.M{"feedurl": feedurl}) &&
+		return models.Insert(models.FeedLists, bson.M{"feedLink": feedurl}) &&
 			models.UpdateUserFeed(models.Users,
 				bson.M{"username": username},
-				bson.M{"$push": bson.M{"feedurl": feedurl}}) &&
+				bson.M{"$push": bson.M{"link": feedurl}}) &&
 			models.UpdateUserFeed(models.Users,
 				bson.M{"username": username},
-				bson.M{"$push": bson.M{"feedlink": feed.Link}})
+				bson.M{"$push": bson.M{"feedLink": feed.Link}})
 
 	}
 
@@ -101,7 +101,7 @@ func DelFeed(c *macaron.Context) bool {
 		feedurl := StandarFeed(c.Query("feedurl"))
 		return models.UpdateUserFeed(models.Users,
 			bson.M{"username": username},
-			bson.M{"$pull": bson.M{"feedurl": feedurl}})
+			bson.M{"$pull": bson.M{"link": feedurl}})
 	} else {
 		fmt.Println("Feedurl can't be blank!")
 		return false

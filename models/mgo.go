@@ -13,13 +13,13 @@ type User struct {
 	ID       bson.ObjectId `bson:"_id"`
 	Username string        `bson:"username"`
 	Password string        `bson:"password"`
-	FeedURL  []string      `bson:"feedurl"`
-	FeedLink []string      `bson:"feedlink"`
+	Link     []string      `bson:"link"`
+	FeedLink []string      `bson:"feedLink"`
 }
 
 //whole user feedlist
 type FeedList struct {
-	FeedURL string `bson:"feedurl"`
+	FeedLink string `bson:"feedLink"`
 }
 
 type Feed struct {

@@ -84,9 +84,20 @@ func main() {
 		}
 		ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
 		controllers.GetUserFeed(ctx)
+
+		ctx.HTML(200, "index")
 	})
 
 	m.Get("/feed", func(ctx *macaron.Context) {
+		if !controllers.CheckLogin(ctx) {
+			ctx.HTML(200, "welcome")
+			return
+		}
+		ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
+		controllers.GetUserFeed(ctx)
+		ctx.HTML(200, "index")
+	})
+	m.Post("/feed", func(ctx *macaron.Context) {
 		if !controllers.CheckLogin(ctx) {
 			ctx.HTML(200, "welcome")
 			return
