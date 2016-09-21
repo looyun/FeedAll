@@ -111,10 +111,24 @@ func DelFeed(c *macaron.Context) bool {
 }
 
 func Prewww(s string) string {
-	if strings.HasPrefix(s, "www") {
-		s = s[3:]
-	} else {
-		s = "www" + s
+	if strings.HasPrefix(s, "http://") {
+		s = s[7:]
+
+		if strings.HasPrefix(s, "www") {
+			s = "http://" + s[3:]
+		} else {
+			s = "http://www" + s
+		}
+	}
+
+	if strings.HasPrefix(s, "https://") {
+		s = s[8:]
+
+		if strings.HasPrefix(s, "www") {
+			s = "https://" + s[3:]
+		} else {
+			s = "https://www" + s
+		}
 	}
 	return s
 }
@@ -124,11 +138,8 @@ func StandarFeed(s string) string {
 		l := len(s)
 		s = s[:l-1]
 	}
-	if strings.HasPrefix(s, "http://") {
-		s = s[7:]
-	}
-	if strings.HasPrefix(s, "https://") {
-		s = s[8:]
+	if !strings.HasPrefix(s, "http://") && !strings.HasPrefix(s, "https://") {
+		s = "http://" + s
 	}
 	return s
 }
