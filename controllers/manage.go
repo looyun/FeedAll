@@ -21,21 +21,23 @@ func AddFeed(c *macaron.Context) bool {
 	feedlists := make([]*models.FeedList, 0)
 	fmt.Println("start judge!")
 	//Judge if feed existed in feedlist.
-	models.GetFeedList(models.FeedLists, bson.M{"feedLink": feedurl}, &feedlists)
-	fmt.Println(feedlists)
+	if !models.GetFeedList(models.FeedLists, bson.M{"feedLink": feedurl}, &feedlists) {
+		models.GetFeedList(models.FeedLists, bson.M{"feedLink": Prewww(feedurl)}, &feedlists)
+		feedurl = Prewww(feedurl)
+	}
 	if len(feedlists) != 0 {
 		fmt.Println("feeds existed!")
 
 		//Judge if feed existed in user's feedurl.
 		if models.GetUserInfo(models.Users,
-			bson.M{"username": username, "Link": feedurl},
+			bson.M{"username": username, "feedLink": feedurl},
 			nil) {
 			fmt.Println("feeds existed in user's feedlist!")
 			return true
 		} else {
 			return models.UpdateUserFeed(models.Users,
 				bson.M{"username": username},
-				bson.M{"$push": bson.M{"Link": feedurl}})
+				bson.M{"$push": bson.M{"feedLink": feedurl}})
 		}
 	} else {
 		fmt.Println("Parse feeds!")
@@ -108,16 +110,27 @@ func DelFeed(c *macaron.Context) bool {
 	}
 }
 
+func Prewww(s string) string {
+	if strings.HasPrefix(s, "www") {
+		s = s[3:]
+	} else {
+		s = "www" + s
+	}
+	return s
+}
+
 func StandarFeed(s string) string {
 	if strings.HasSuffix(s, "/") {
 		l := len(s)
 		s = s[:l-1]
 	}
-	if strings.HasPrefix(s, "http://") || strings.HasPrefix(s, "https://") {
-		return s
-	} else {
-		return "http://" + s
+	if strings.HasPrefix(s, "http://") {
+		s = s[7:]
 	}
+	if strings.HasPrefix(s, "https://") {
+		s = s[8:]
+	}
+	return s
 }
 
 func DecodeEntities(str string) string {
