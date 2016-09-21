@@ -32,7 +32,7 @@ func GetUserFeed(c *macaron.Context) {
 
 		fmt.Println("parse ", user.Username, " feed!")
 		models.GetFeed(models.Feeds,
-			bson.M{"feedLink": bson.M{"$in": user.Link}},
+			bson.M{"feedLink": bson.M{"$in": user.FeedLink}},
 			"items",
 			&feed)
 		if len(feed) == 0 {
@@ -63,7 +63,7 @@ func GetUserFeed(c *macaron.Context) {
 			c.Data["root"] = true
 			models.GetAllItem(models.Feeds,
 				[]bson.M{
-					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.Link}}},
+					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.FeedLink}}},
 					bson.M{"$unwind": "$items"},
 					bson.M{"$sort": bson.M{"items.publishedParsed": -1}},
 					bson.M{"$limit": 45},

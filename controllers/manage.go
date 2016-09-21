@@ -82,10 +82,10 @@ func AddFeed(c *macaron.Context) bool {
 		return models.Insert(models.FeedLists, bson.M{"feedLink": feedurl}) &&
 			models.UpdateUserFeed(models.Users,
 				bson.M{"username": username},
-				bson.M{"$push": bson.M{"link": feedurl}}) &&
+				bson.M{"$push": bson.M{"link": feed.Link}}) &&
 			models.UpdateUserFeed(models.Users,
 				bson.M{"username": username},
-				bson.M{"$push": bson.M{"feedLink": feed.Link}})
+				bson.M{"$push": bson.M{"feedLink": feedurl}})
 
 	}
 

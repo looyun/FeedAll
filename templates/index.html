@@ -114,8 +114,9 @@
             success: function(data) {
                 if (data.indexOf("li") > 3) {
                     Materialize.toast('no items more:)', 2000, "rounded")
+                } else {
+                    $(".collapsible-right").append(data)
                 };
-                $(".collapsible-right").append(data);
             }
         });
         i++;
