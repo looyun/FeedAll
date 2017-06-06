@@ -14,4 +14,4 @@ I choose Macaron as backend framwork and mongodb to storage data just because th
 + GTD:I want to feed my things on it:)
 + More features for feeds in /manage.
 + Read it later.
-+ Show serveral items in one.
++ Show several similar items into one.
