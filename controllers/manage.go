@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"feedall/models"
+	"github.com/looyun/feedall/models"
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"gopkg.in/macaron.v1"

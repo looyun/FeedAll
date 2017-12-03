@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"feedall/models"
+	"github.com/looyun/feedall/models"
 
 	"crypto/md5"
 	"encoding/hex"

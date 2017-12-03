@@ -2,7 +2,7 @@ package controllers
 
 import (
 	// "encoding/json"
-	"feedall/models"
+	"github.com/looyun/feedall/models"
 	"fmt"
 	"io"
 	"net/url"

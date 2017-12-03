@@ -1,9 +1,9 @@
 package main
 
 import (
-	"feedall/controllers"
-	"feedall/models"
-	"feedall/parse"
+	"github.com/looyun/feedall/controllers"
+	"github.com/looyun/feedall/models"
+	"github.com/looyun/feedall/parse"
 	"fmt"
 	"gopkg.in/macaron.v1"
 	"html/template"

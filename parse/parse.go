@@ -1,8 +1,8 @@
 package parse
 
 import (
-	"feedall/controllers"
-	"feedall/models"
+	"github.com/looyun/feedall/controllers"
+	"github.com/looyun/feedall/models"
 	"fmt"
 	"github.com/mmcdole/gofeed"
 	"gopkg.in/mgo.v2/bson"
