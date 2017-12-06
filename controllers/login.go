@@ -5,6 +5,7 @@ import (
 
 	"crypto/md5"
 	"encoding/hex"
+
 	"gopkg.in/macaron.v1"
 	"gopkg.in/mgo.v2/bson"
 )

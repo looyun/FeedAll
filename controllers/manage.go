@@ -1,14 +1,15 @@
 package controllers
 
 import (
-	"github.com/looyun/feedall/models"
 	"fmt"
-	"github.com/mmcdole/gofeed"
-	"gopkg.in/macaron.v1"
-	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"strings"
 	"time"
+
+	"github.com/looyun/feedall/models"
+	"github.com/mmcdole/gofeed"
+	"gopkg.in/macaron.v1"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func AddFeed(c *macaron.Context) bool {
