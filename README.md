@@ -5,13 +5,20 @@ A feed reader writen in Golang .
 FeedAll is a pratice project writen in Golang.
 I choose Macaron as backend framwork and mongodb to storage data just because they can help me learn more :)
 
-## Issues
-+ Manage page is not finished.
-+ "loading" is repeated when open an article with another article opened.
-+ UI is still in beta.
+## Requirement
+* go1.10+
+* mongodb3.6+
 
-## Expected features
-+ GTD:I want to feed my things on it:)
-+ More features for feeds in /manage.
-+ Read it later.
-+ Show several similar items into one.
+## Install
+### Get feedall
+### Create mongodb user
+```
+mongo
+>>db.createUser({user:"username",pwd:"password",roles:[{role:"dbOwner",db:"feedall"}]})
+
+```
+### Start feedall
+```
+cd /path-of-feedall/
+go run 
+```

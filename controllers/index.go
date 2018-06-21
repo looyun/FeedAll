@@ -132,6 +132,46 @@ func GetItemContent(c *macaron.Context) {
 
 }
 
+func GetFeed(c *macaron.Context) interface{} {
+	feedlink := ParseURL(c.Params("*"))
+	feed := bson.M{}
+	models.GetItem(models.Feeds,
+		[]bson.M{
+			bson.M{"$match": bson.M{"feedLink": feedlink}},
+		},
+		&feed)
+
+	return feed
+}
+
+func GetItem(c *macaron.Context) interface{} {
+	itemlink := ParseURL(c.Params("*"))
+	item := bson.M{}
+	models.GetItem(models.Feeds,
+		[]bson.M{
+			bson.M{"$match": bson.M{"items.link": itemlink}},
+			bson.M{"$unwind": "$items"},
+			bson.M{"$match": bson.M{"items.link": itemlink}},
+		},
+		&item)
+	fmt.Println(item)
+	return item
+
+}
+
+func GetItemSample(c *macaron.Context) interface{} {
+	items := []bson.M{}
+	models.GetItem(models.Feeds,
+		[]bson.M{
+			bson.M{"$unwind": "$items"},
+			bson.M{"$sample": bson.M{"size": 5}},
+		},
+		&items)
+	fmt.Println(items)
+	return items
+
+}
+
 func StandarURL(s string) string {
 	if !strings.HasSuffix(s, "/") {
 		s = s + "/"

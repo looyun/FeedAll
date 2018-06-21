@@ -17,7 +17,7 @@ type User struct {
 	FeedLink []string      `bson:"feedLink"`
 }
 
-//whole user feedlist
+// whole user feedlist.
 type FeedList struct {
 	FeedLink string `bson:"feedLink"`
 }
@@ -48,6 +48,7 @@ type Feed struct {
 // and rss.Item gets translated to.  It represents
 // a single entry in a given feed.
 type Item struct {
+	ID              bson.ObjectId     `bson:"_id"`
 	Title           string            `bson:"title"`
 	Description     string            `bson:"description"`
 	Content         string            `bson:"content"`
@@ -113,10 +114,13 @@ var DBConfig = struct {
 	DBName   string
 }{}
 
+type Collection mgo.Collection
+
 //= =!
 var Users *mgo.Collection
 var FeedLists *mgo.Collection
 var Feeds *mgo.Collection
+var Items *mgo.Collection
 var Sessions *mgo.Collection
 
 func Init() {
@@ -130,6 +134,7 @@ func Init() {
 	Users = Session.DB("feedall").C("users")
 	FeedLists = Session.DB("feedall").C("feedlists")
 	Feeds = Session.DB("feedall").C("feeds")
+	Items = Session.DB("feedall").C("items")
 	Sessions = Session.DB("feedall").C("sessions")
 }
 
@@ -173,6 +178,13 @@ func UpdateFeedList(collection *mgo.Collection, q interface{}, i interface{}) bo
 func UpdateFeed(collection *mgo.Collection, q interface{}, i interface{}) bool {
 	err := collection.Update(q, i)
 	return Err(err)
+}
+func InsertItem(collection *mgo.Collection, q interface{}, i interface{}) interface{} {
+	info, err := collection.Upsert(q, i)
+	if err != nil {
+		fmt.Println(err)
+	}
+	return info.UpsertedId
 
 }
 

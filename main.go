@@ -76,6 +76,7 @@ func main() {
 				}
 			},
 		}},
+		IndentJSON: true,
 	}))
 	m.SetDefaultCookieSecret("feedall")
 	m.Get("/", func(ctx *macaron.Context) {
@@ -193,6 +194,25 @@ func main() {
 		m.Post("/register", func(ctx *macaron.Context) {
 			controllers.Register(ctx)
 		})
+	})
+	m.Group("/api", func() {
+		m.Get("/feed/*", func(ctx *macaron.Context) {
+			feed := controllers.GetFeed(ctx)
+			ctx.JSON(200, &feed)
+
+		})
+		m.Get("/item/*", func(ctx *macaron.Context) {
+			item := controllers.GetItem(ctx)
+			ctx.JSON(200, &item)
+		})
+		m.Get("/item/random", func(ctx *macaron.Context) {
+			items := controllers.GetItemSample(ctx)
+			ctx.JSON(200, &items)
+		})
+		// m.Get("/feed",func(ctx *macaron.Context){
+
+		// })
+
 	})
 	m.Run()
 
