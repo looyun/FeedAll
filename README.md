@@ -10,15 +10,20 @@ I choose Macaron as backend framwork and mongodb to storage data just because th
 * mongodb3.6+
 
 ## Install
+
 ### Get feedall
+```bash
+git clone https://github.com/looyun/feedall.git
+```
+
 ### Create mongodb user
 ```
 mongo
 >>db.createUser({user:"username",pwd:"password",roles:[{role:"dbOwner",db:"feedall"}]})
-
 ```
+
 ### Start feedall
 ```
 cd /path-of-feedall/
-go run 
+go run main.go
 ```

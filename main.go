@@ -79,26 +79,6 @@ func main() {
 		IndentJSON: true,
 	}))
 	m.SetDefaultCookieSecret("feedall")
-	m.Get("/", func(ctx *macaron.Context) {
-		if !controllers.CheckLogin(ctx) {
-			ctx.HTML(200, "welcome")
-			return
-		}
-		ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-		controllers.GetUserFeed(ctx)
-
-		ctx.HTML(200, "index")
-	})
-
-	m.Get("/feed", func(ctx *macaron.Context) {
-		if !controllers.CheckLogin(ctx) {
-			ctx.HTML(200, "welcome")
-			return
-		}
-		ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-		controllers.GetUserFeed(ctx)
-		ctx.HTML(200, "index")
-	})
 	m.Post("/feed", func(ctx *macaron.Context) {
 		if !controllers.CheckLogin(ctx) {
 			ctx.HTML(200, "welcome")
@@ -117,16 +97,6 @@ func main() {
 		controllers.GetItemContent(ctx)
 	})
 
-	m.Get("/item/*", func(ctx *macaron.Context) {
-		if !controllers.CheckLogin(ctx) {
-			ctx.HTML(200, "welcome")
-			return
-		}
-		ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-		controllers.GetItemContent(ctx)
-		ctx.HTML(200, "index")
-	})
-
 	m.Post("/add", func(ctx *macaron.Context) {
 		if !controllers.CheckLogin(ctx) {
 			ctx.HTML(200, "login")
@@ -138,15 +108,6 @@ func main() {
 			fmt.Println("Add feed false!")
 			ctx.Redirect("/")
 		}
-	})
-	m.Get("/manage", func(ctx *macaron.Context) {
-		if !controllers.CheckLogin(ctx) {
-			ctx.Redirect("/user/login")
-			return
-		}
-		ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-		controllers.GetUserFeed(ctx)
-		ctx.HTML(200, "manage")
 	})
 
 	m.Post("/del", func(ctx *macaron.Context) {
@@ -164,17 +125,6 @@ func main() {
 	})
 	m.Group("/user", func() {
 
-		m.Get("/login", func(ctx *macaron.Context) {
-			if ctx.Query("exit") == "true" {
-				ctx.SetCookie("username", "")
-
-				ctx.SetCookie("password", "")
-				ctx.Redirect("/")
-				return
-			}
-			ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-			ctx.HTML(200, "login")
-		})
 		m.Post("/login", func(ctx *macaron.Context) {
 			if controllers.Login(ctx) {
 				ctx.Redirect("/")
@@ -183,13 +133,6 @@ func main() {
 				ctx.HTML(200, "login")
 				return
 			}
-		})
-		m.Get("/test", func(ctx *macaron.Context) {
-
-		})
-		m.Get("/register", func(ctx *macaron.Context) {
-			ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-			ctx.HTML(200, "register")
 		})
 		m.Post("/register", func(ctx *macaron.Context) {
 			controllers.Register(ctx)
@@ -206,8 +149,12 @@ func main() {
 			ctx.JSON(200, &item)
 		})
 		m.Get("/item/random", func(ctx *macaron.Context) {
-			items := controllers.GetItemSample(ctx)
+			items := controllers.GetItemSample(ctx, 1)
 			ctx.JSON(200, &items)
+		})
+		m.Get("/item/hot", func(ctx *macaron.Context) {
+			// items := controllers.GetItemSample(ctx, 5)
+			// ctx.JSON(200, &items)
 		})
 		// m.Get("/feed",func(ctx *macaron.Context){
 
