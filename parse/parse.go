@@ -1,13 +1,14 @@
 package parse
 
 import (
-	"github.com/looyun/feedall/controllers"
-	"github.com/looyun/feedall/models"
 	"fmt"
-	"github.com/mmcdole/gofeed"
-	"gopkg.in/mgo.v2/bson"
 	"strconv"
 	"time"
+
+	"github.com/looyun/feedall/controllers"
+	"github.com/looyun/feedall/models"
+	"github.com/mmcdole/gofeed"
+	"gopkg.in/mgo.v2/bson"
 )
 
 func Parse() {
@@ -25,20 +26,11 @@ func Parse() {
 			fb := gofeed.NewParser()
 			for _, u := range feedlist {
 				go func(u *models.FeedList) {
-					value, err := fb.ParseURL(u.FeedLink)
+					feed, err := fb.ParseURL(u.FeedLink)
 					if err != nil {
 						fmt.Println("Parse err: ", err)
 						Finish <- u.FeedLink
 					} else {
-						data, err := bson.Marshal(value)
-						if err != nil {
-							fmt.Println(err)
-						}
-						feed := models.Feed{}
-						err = bson.Unmarshal(data, &feed)
-						if err != nil {
-							fmt.Println(err)
-						}
 
 						for _, v := range feed.Items {
 							if v.Content == "" {
@@ -54,23 +46,20 @@ func Parse() {
 							}
 							publishedParsed := controllers.ParseDate(v.Published)
 							v.PublishedParsed = strconv.FormatInt(publishedParsed.Unix(), 10)
-						}
 
-						for _, v := range feed.Items {
-							if !models.GetItem(models.Feeds,
-								[]bson.M{
-									bson.M{"$match": bson.M{"items.link": v.Link}},
-								},
-								bson.M{}) {
-								models.UpdateFeed(models.Feeds,
-									bson.M{"title": feed.Title},
-									bson.M{"$push": bson.M{"items": v}})
-								fmt.Println("updatefeed OK!")
-							} else {
-								break
+							var item_ids []int
+							item_id := models.InsertItem(models.Items,
+								bson.M{"link": v.Link},
+								v)
+							if item_id != nil {
+								item_ids = append(item_ids, item_id.(int))
 							}
-
 						}
+						feed.ItemIDs = item_ids
+						models.UpdateFeed(models.Feeds,
+							bson.M{"feedlink": feed.FeedLink},
+							feed)
+						fmt.Println("updatefeed OK!")
 						Finish <- u.FeedLink
 					}
 

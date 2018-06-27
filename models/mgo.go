@@ -39,7 +39,7 @@ type Feed struct {
 	Categories      []string          `bson:"categories"`
 	Extensions      ext.Extensions    `bson:"extensions"`
 	Custom          map[string]string `bson:"custom"`
-	Items           []*Item           `bson:"items"`
+	ItemIDs         []int             `bson:"itemids"`
 	FeedType        string            `bson:"feedType"`
 	FeedVersion     string            `bson:"feedVersion"`
 }
@@ -113,8 +113,6 @@ var DBConfig = struct {
 	Port     string
 	DBName   string
 }{}
-
-type Collection mgo.Collection
 
 //= =!
 var Users *mgo.Collection

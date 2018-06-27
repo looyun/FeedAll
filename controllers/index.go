@@ -159,12 +159,12 @@ func GetItem(c *macaron.Context) interface{} {
 
 }
 
-func GetItemSample(c *macaron.Context) interface{} {
+func GetItemSample(c *macaron.Context, n int) interface{} {
 	items := []bson.M{}
 	models.GetItem(models.Feeds,
 		[]bson.M{
 			bson.M{"$unwind": "$items"},
-			bson.M{"$sample": bson.M{"size": 5}},
+			bson.M{"$sample": bson.M{"size": n}},
 		},
 		&items)
 	fmt.Println(items)
