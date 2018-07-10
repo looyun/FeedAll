@@ -85,30 +85,21 @@ func main() {
 			m.Post("/login", func(ctx *macaron.Context) {
 				if controllers.Login(ctx) {
 					ctx.Redirect("/")
-					return
 				} else {
-					ctx.HTML(200, "login")
-					return
+					ctx.JSON(200, "login")
 				}
+				return
 			})
 			m.Post("/register", func(ctx *macaron.Context) {
 				controllers.Register(ctx)
 			})
 
 			m.Post("/feed", func(ctx *macaron.Context) {
-				if !controllers.CheckLogin(ctx) {
-					ctx.HTML(200, "welcome")
-					return
-				}
 				ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
 				controllers.GetUserFeed(ctx)
 			})
 
 			m.Post("/add", func(ctx *macaron.Context) {
-				if !controllers.CheckLogin(ctx) {
-					ctx.HTML(200, "login")
-					return
-				}
 				if controllers.AddFeed(ctx) {
 					ctx.Redirect("/")
 				} else {
@@ -118,10 +109,6 @@ func main() {
 			})
 
 			m.Post("/del", func(ctx *macaron.Context) {
-				if !controllers.CheckLogin(ctx) {
-					ctx.HTML(200, "login")
-					return
-				}
 				if controllers.DelFeed(ctx) {
 					fmt.Println("Delete feed succeed!")
 					ctx.Redirect("/manage")
