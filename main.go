@@ -100,12 +100,7 @@ func main() {
 			})
 
 			m.Post("/add", func(ctx *macaron.Context) {
-				if controllers.AddFeed(ctx) {
-					ctx.Redirect("/")
-				} else {
-					fmt.Println("Add feed false!")
-					ctx.Redirect("/")
-				}
+				controllers.AddFeed(ctx)
 			})
 
 			m.Post("/del", func(ctx *macaron.Context) {
@@ -128,8 +123,18 @@ func main() {
 			item := controllers.GetItem(ctx)
 			ctx.JSON(200, &item)
 		})
-		m.Get("/item/random", func(ctx *macaron.Context) {
-			items := controllers.GetItemSample(ctx, 1)
+		m.Get("/item/random/:n:int", func(ctx *macaron.Context) {
+			numbers, _ := strconv.Atoi(ctx.Params(":n"))
+			items := controllers.GetRandomItem(ctx, numbers)
+			fmt.Println(ctx.Params(":n"))
+			fmt.Println(numbers)
+			ctx.JSON(200, &items)
+		})
+		m.Get("/item/new/:n:int", func(ctx *macaron.Context) {
+			numbers, _ := strconv.Atoi(ctx.Params(":n"))
+			items := controllers.GetLatestItem(ctx, numbers)
+			fmt.Println(ctx.Params(":n"))
+			fmt.Println(numbers)
 			ctx.JSON(200, &items)
 		})
 		// m.Get("/item/hot", func(ctx *macaron.Context) {

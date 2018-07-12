@@ -19,10 +19,13 @@ type User struct {
 
 // whole user feedlist.
 type FeedList struct {
-	FeedLink string `bson:"feedLink"`
+	FeedID   bson.ObjectId `bson:"feedID"`
+	Link     string        `bson:"link"`
+	FeedLink string        `bson:"feedLink"`
 }
 
 type Feed struct {
+	ID              bson.ObjectId     `bson:"_id"`
 	Title           string            `bson:"title"`
 	Description     string            `bson:"description"`
 	Link            string            `bson:"link"`
@@ -39,7 +42,6 @@ type Feed struct {
 	Categories      []string          `bson:"categories"`
 	Extensions      ext.Extensions    `bson:"extensions"`
 	Custom          map[string]string `bson:"custom"`
-	ItemIDs         []int             `bson:"itemids"`
 	FeedType        string            `bson:"feedType"`
 	FeedVersion     string            `bson:"feedVersion"`
 }
@@ -48,7 +50,7 @@ type Feed struct {
 // and rss.Item gets translated to.  It represents
 // a single entry in a given feed.
 type Item struct {
-	ID              bson.ObjectId     `bson:"_id"`
+	FeedID          bson.ObjectId     `bson:"feedID"`
 	Title           string            `bson:"title"`
 	Description     string            `bson:"description"`
 	Content         string            `bson:"content"`
@@ -122,7 +124,7 @@ var Items *mgo.Collection
 var Sessions *mgo.Collection
 
 func Init() {
-	url := "mongodb://admin:feedall@localhost:27017/feedall"
+	url := "mongodb://admin:feedall@127.0.0.1:27017/feedall"
 	Session, err := mgo.Dial(url)
 	if err != nil {
 		panic(err)
@@ -141,48 +143,44 @@ func Insert(collection *mgo.Collection, i interface{}) bool {
 	return Err(err)
 }
 
-func GetUserInfo(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func FindOne(collection *mgo.Collection, q interface{}, i interface{}) bool {
 	err := collection.Find(q).One(i)
 	return Err(err)
 }
 
-func GetFeedList(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func FindAll(collection *mgo.Collection, q interface{}, i interface{}) bool {
 	err := collection.Find(q).All(i)
 	return Err(err)
 }
-func GetFeed(collection *mgo.Collection, q interface{}, r string, i interface{}) bool {
-	err := collection.Find(q).Sort(r).All(i)
+func FindLimit(collection *mgo.Collection, q interface{}, n int, i interface{}) bool {
+	err := collection.Find(q).Limit(n).All(i)
+	return Err(err)
+}
+func FindSort(collection *mgo.Collection, q interface{}, s string, i interface{}) bool {
+	err := collection.Find(q).Sort(s).All(i)
+	return Err(err)
+}
+func FindSortLimit(collection *mgo.Collection, q interface{}, s string, n int, i interface{}) bool {
+	err := collection.Find(q).Sort(s).Limit(n).All(i)
 	return Err(err)
 }
 
-func GetAllItem(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func PipeAll(collection *mgo.Collection, q interface{}, i interface{}) bool {
 	err := collection.Pipe(q).All(i)
 	return Err(err)
 }
 
-func GetItem(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func PipeOne(collection *mgo.Collection, q interface{}, i interface{}) bool {
 	err := collection.Pipe(q).One(i)
 	return Err(err)
 }
 
-func UpdateUserFeed(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func Update(collection *mgo.Collection, q interface{}, i interface{}) bool {
 	err := collection.Update(q, i)
 	return Err(err)
 }
-func UpdateFeedList(collection *mgo.Collection, q interface{}, i interface{}) bool {
-	err := collection.Update(q, i)
-	return Err(err)
-}
-func UpdateFeed(collection *mgo.Collection, q interface{}, i interface{}) bool {
-	err := collection.Update(q, i)
-	return Err(err)
-}
-func InsertItem(collection *mgo.Collection, q interface{}, i interface{}) interface{} {
-	info, err := collection.Upsert(q, i)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return info.UpsertedId
+func Upsert(collection *mgo.Collection, q interface{}, i interface{}) (info *mgo.ChangeInfo, err error) {
+	return collection.Upsert(q, i)
 
 }
 

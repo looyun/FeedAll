@@ -12,58 +12,55 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func AddFeed(c *macaron.Context) bool {
-	if !CheckLogin(c) {
-		c.HTML(200, "login")
-		return false
-	}
-	username, _ := c.GetSecureCookie("username")
+type ItemsWrapper struct {
+	items interface{}
+}
+
+func AddFeed(c *macaron.Context) {
 	feedurl := StandarFeed(c.Query("feedurl"))
 	feedlists := make([]*models.FeedList, 0)
 	fmt.Println("start judge!")
 	//Judge if feed existed in feedlist.
-	if !models.GetFeedList(models.FeedLists, bson.M{"feedLink": feedurl}, &feedlists) {
-		models.GetFeedList(models.FeedLists, bson.M{"feedLink": Prewww(feedurl)}, &feedlists)
+	if !models.FindAll(models.FeedLists, bson.M{"feedLink": feedurl}, &feedlists) {
+		models.FindAll(models.FeedLists, bson.M{"feedLink": Prewww(feedurl)}, &feedlists)
 		feedurl = Prewww(feedurl)
 	}
 	if len(feedlists) != 0 {
 		fmt.Println("feeds existed!")
-
-		//Judge if feed existed in user's feedurl.
-		if models.GetUserInfo(models.Users,
-			bson.M{"username": username, "feedLink": feedurl},
-			nil) {
-			fmt.Println("feeds existed in user's feedlist!")
-			return true
-		} else {
-			return models.UpdateUserFeed(models.Users,
-				bson.M{"username": username},
-				bson.M{"$push": bson.M{"feedLink": feedurl}})
-		}
 	} else {
 		fmt.Println("Parse feeds!")
 		fb := gofeed.NewParser()
 		fmt.Println(feedurl)
-		value, err := fb.ParseURL(feedurl)
+		origin_feed, err := fb.ParseURL(feedurl)
 		if err != nil {
 			fmt.Println("Parse err: ", err)
-			return false
 		}
-		data, err := bson.Marshal(value)
+		bs_feed, err := bson.Marshal(origin_feed)
 		if err != nil {
 			fmt.Println(err)
-			return false
 		}
 		feed := models.Feed{}
-		err = bson.Unmarshal(data, &feed)
+		err = bson.Unmarshal(bs_feed, &feed)
 		if err != nil {
 			fmt.Println(err)
-			return false
+		}
+		feed.ID = bson.NewObjectId()
+		feed.FeedLink = feedurl
+		models.Insert(models.Feeds, feed)
+		fmt.Println("inserted feeds!")
+
+		if err != nil {
+			fmt.Println(err)
+		}
+		var items struct {
+			Items []*models.Item `bson:"items"`
+		}
+		err = bson.Unmarshal(bs_feed, &items)
+		if err != nil {
+			fmt.Println(err)
 		}
 
-		feed.FeedLink = feedurl
-
-		for _, v := range feed.Items {
+		for _, v := range items.Items {
 			if v.Content == "" {
 
 				if v.Extensions != nil && v.Extensions["content"] != nil {
@@ -78,18 +75,11 @@ func AddFeed(c *macaron.Context) bool {
 			}
 			publishedParsed := ParseDate(v.Published)
 			v.PublishedParsed = strconv.FormatInt(publishedParsed.Unix(), 10)
+			v.FeedID = feed.ID
+			models.Insert(models.Items, &v)
 		}
-		models.Insert(models.Feeds, feed)
-		fmt.Println("inserted feeds!")
 
-		return models.Insert(models.FeedLists, bson.M{"feedLink": feedurl}) &&
-			models.UpdateUserFeed(models.Users,
-				bson.M{"username": username},
-				bson.M{"$push": bson.M{"link": feed.Link}}) &&
-			models.UpdateUserFeed(models.Users,
-				bson.M{"username": username},
-				bson.M{"$push": bson.M{"feedLink": feedurl}})
-
+		models.Insert(models.FeedLists, bson.M{"feedLink": feedurl, "_id": feed.ID, "link": feed.Link})
 	}
 
 }
@@ -102,7 +92,7 @@ func DelFeed(c *macaron.Context) bool {
 	username, _ := c.GetSecureCookie("username")
 	if c.Query("feedurl") != "" {
 		feedurl := StandarFeed(c.Query("feedurl"))
-		return models.UpdateUserFeed(models.Users,
+		return models.Update(models.Users,
 			bson.M{"username": username},
 			bson.M{"$pull": bson.M{"link": feedurl}})
 	} else {

@@ -3,9 +3,7 @@ package controllers
 import (
 	// "encoding/json"
 	"fmt"
-	"io"
 	"net/url"
-	"strconv"
 	"strings"
 
 	"github.com/looyun/feedall/models"
@@ -24,15 +22,10 @@ func GetUserFeed(c *macaron.Context) {
 	user := models.User{}
 	feed := make([]*models.Feed, 0)
 	item := []bson.M{}
-	if models.GetUserInfo(models.Users, bson.M{"username": username}, &user) == true {
-
-		if c.Query("page") != "" {
-			GetMoreItem(c, user.Link)
-			return
-		}
+	if models.FindOne(models.Users, bson.M{"username": username}, &user) == true {
 
 		fmt.Println("parse ", user.Username, " feed!")
-		models.GetFeed(models.Feeds,
+		models.FindSort(models.Feeds,
 			bson.M{"feedLink": bson.M{"$in": user.FeedLink}},
 			"items",
 			&feed)
@@ -47,7 +40,7 @@ func GetUserFeed(c *macaron.Context) {
 			fmt.Println("hi", c.Query("feedlink"))
 			feedlink = ParseURL(feedlink)
 
-			models.GetAllItem(models.Feeds,
+			models.PipeAll(models.Feeds,
 				[]bson.M{
 					bson.M{"$match": bson.M{"feedLink": feedlink}},
 					bson.M{"$unwind": "$items"},
@@ -62,7 +55,7 @@ func GetUserFeed(c *macaron.Context) {
 			}
 		} else {
 			c.Data["root"] = true
-			models.GetAllItem(models.Feeds,
+			models.PipeAll(models.Feeds,
 				[]bson.M{
 					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.FeedLink}}},
 					bson.M{"$unwind": "$items"},
@@ -81,64 +74,12 @@ func GetUserFeed(c *macaron.Context) {
 		c.Data["Item"] = item
 	}
 }
-func GetMoreItem(c *macaron.Context, s []string) {
-
-	item := []bson.M{}
-	page, _ := strconv.Atoi(c.Query("page"))
-	feedlink := c.Query("feedlink")
-	if feedlink != "" {
-		feedlink = ParseURL(feedlink)
-		models.GetAllItem(models.Feeds,
-			[]bson.M{
-				bson.M{"$match": bson.M{"feedLink": feedlink}},
-				bson.M{"$unwind": "$items"},
-				bson.M{"$sort": bson.M{"items.publishedParsed": -1}},
-				bson.M{"$skip": 45 + page*30},
-				bson.M{"$limit": 30},
-			},
-			&item)
-	} else {
-		models.GetAllItem(models.Feeds,
-			[]bson.M{
-				bson.M{"$match": bson.M{"feedLink": bson.M{"$in": s}}},
-				bson.M{"$unwind": "$items"},
-				bson.M{"$sort": bson.M{"items.publishedParsed": -1}},
-				bson.M{"$skip": 45 + page*30},
-				bson.M{"$limit": 30},
-			},
-			&item)
-	}
-	c.Data["ITEMS"] = item
-	c.HTML(200, "items")
-	return
-}
-
-func GetItemContent(c *macaron.Context) {
-	itemlink := ParseURL(c.Params("*"))
-	fmt.Println(itemlink)
-	feed := bson.M{}
-	models.GetItem(models.Feeds,
-		[]bson.M{
-			bson.M{"$match": bson.M{"items.link": itemlink}},
-			bson.M{"$unwind": "$items"},
-			bson.M{"$match": bson.M{"items.link": itemlink}},
-		},
-		&feed)
-
-	c.Data["Feed"] = feed
-	item, _ := feed["items"].(bson.M)
-	content, _ := item["content"].(string)
-	io.WriteString(c, content)
-
-}
 
 func GetFeed(c *macaron.Context) interface{} {
 	feedlink := ParseURL(c.Params("*"))
 	feed := bson.M{}
-	models.GetItem(models.Feeds,
-		[]bson.M{
-			bson.M{"$match": bson.M{"feedLink": feedlink}},
-		},
+	models.FindOne(models.Feeds,
+		bson.M{"feedLink": feedlink},
 		&feed)
 
 	return feed
@@ -147,25 +88,26 @@ func GetFeed(c *macaron.Context) interface{} {
 func GetItem(c *macaron.Context) interface{} {
 	itemlink := ParseURL(c.Params("*"))
 	item := bson.M{}
-	models.GetItem(models.Feeds,
-		[]bson.M{
-			bson.M{"$match": bson.M{"items.link": itemlink}},
-			bson.M{"$unwind": "$items"},
-			bson.M{"$match": bson.M{"items.link": itemlink}},
-		},
+	models.PipeOne(models.Items,
+		bson.M{"link": itemlink},
 		&item)
 	fmt.Println(item)
 	return item
 
 }
 
-func GetItemSample(c *macaron.Context, n int) interface{} {
+func GetRandomItem(c *macaron.Context, n int) interface{} {
 	items := []bson.M{}
-	models.GetItem(models.Feeds,
-		[]bson.M{
-			bson.M{"$unwind": "$items"},
-			bson.M{"$sample": bson.M{"size": n}},
-		},
+	models.PipeAll(models.Items, []bson.M{{"$sample": bson.M{"size": n}}},
+		&items)
+	fmt.Println(items)
+	return items
+
+}
+func GetLatestItem(c *macaron.Context, n int) interface{} {
+	items := []bson.M{}
+	models.FindSortLimit(models.Items,
+		bson.M{}, "-publishedParsed", n,
 		&items)
 	fmt.Println(items)
 	return items

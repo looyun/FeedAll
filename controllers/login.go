@@ -16,7 +16,7 @@ func Login(c *macaron.Context) bool {
 	password := c.Query("password")
 	if username != "" && password != "" {
 		user := models.User{}
-		if models.GetUserInfo(models.Users, bson.M{"username": username}, &user) != true {
+		if models.FindOne(models.Users, bson.M{"username": username}, &user) != true {
 			c.Data["LoginErr"] = true
 			return false
 		} else {
@@ -46,7 +46,7 @@ func CheckLogin(c *macaron.Context) bool {
 	}
 	user := models.User{}
 	if username != "" {
-		if models.GetUserInfo(models.Users, bson.M{"username": username}, &user) == true {
+		if models.FindOne(models.Users, bson.M{"username": username}, &user) == true {
 			return user.Password == password
 		}
 	}

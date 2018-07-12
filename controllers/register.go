@@ -17,7 +17,7 @@ func Register(c *macaron.Context) bool {
 			Username: username,
 			Password: GetMd5String(password),
 		}
-		if !models.GetUserInfo(models.Users, bson.M{"username": username}, &user) {
+		if !models.FindOne(models.Users, bson.M{"username": username}, &user) {
 			if models.Insert(models.Users, user) {
 				fmt.Println("register successful!")
 				c.Redirect("/user/login")

@@ -14,25 +14,37 @@ import (
 func Parse() {
 	for {
 		timer := time.NewTimer(60 * time.Second)
-
 		fmt.Println("start parse!")
 		feedlist := make([]*models.FeedList, 0)
-		if !models.GetFeedList(models.FeedLists, nil, &feedlist) {
+		if !models.FindAll(models.FeedLists, nil, &feedlist) {
 			fmt.Println(<-timer.C)
 			continue
 		} else {
 			Finish := make(chan string)
-
 			fb := gofeed.NewParser()
 			for _, u := range feedlist {
 				go func(u *models.FeedList) {
-					feed, err := fb.ParseURL(u.FeedLink)
+					origin_feed, err := fb.ParseURL(u.FeedLink)
 					if err != nil {
 						fmt.Println("Parse err: ", err)
 						Finish <- u.FeedLink
 					} else {
-
-						for _, v := range feed.Items {
+						data, err := bson.Marshal(origin_feed)
+						if err != nil {
+							fmt.Println(err)
+						}
+						var items struct {
+							Items []*models.Item `bson:"items"`
+						}
+						err = bson.Unmarshal(data, &items)
+						if err != nil {
+							fmt.Println(err)
+						}
+						feed := models.Feed{}
+						models.FindOne(models.Feeds,
+							bson.M{"feedLink": u.FeedLink},
+							&feed)
+						for _, v := range items.Items {
 							if v.Content == "" {
 								if v.Extensions != nil && v.Extensions["content"] != nil {
 									v.Content = v.Extensions["content"]["encoded"][0].Value
@@ -40,29 +52,31 @@ func Parse() {
 									v.Content = v.Description
 								}
 							}
-							v.Content = controllers.DecodeImg(v.Content, feed.Link)
+							v.Content = controllers.DecodeImg(v.Content, u.Link)
 							if v.Published == "" {
 								v.Published = v.Updated
 							}
 							publishedParsed := controllers.ParseDate(v.Published)
 							v.PublishedParsed = strconv.FormatInt(publishedParsed.Unix(), 10)
+							v.FeedID = feed.ID
 
-							var item_ids []int
-							item_id := models.InsertItem(models.Items,
+							info, err := models.Upsert(models.Items,
 								bson.M{"link": v.Link},
 								v)
-							if item_id != nil {
-								item_ids = append(item_ids, item_id.(int))
+							if err != nil {
+								fmt.Println(err)
+							}
+							if info == nil {
+								continue
+							}
+							if info.Updated > 0 {
+								fmt.Printf("updated %d\n", info.Updated)
+							} else {
+								fmt.Println("no new item")
 							}
 						}
-						feed.ItemIDs = item_ids
-						models.UpdateFeed(models.Feeds,
-							bson.M{"feedlink": feed.FeedLink},
-							feed)
-						fmt.Println("updatefeed OK!")
 						Finish <- u.FeedLink
 					}
-
 				}(u)
 			}
 			for _, _ = range feedlist {
