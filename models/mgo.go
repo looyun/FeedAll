@@ -10,18 +10,14 @@ import (
 )
 
 type User struct {
-	ID       bson.ObjectId `bson:"_id"`
-	Username string        `bson:"username"`
-	Password string        `bson:"password"`
-	Link     []string      `bson:"link"`
-	FeedLink []string      `bson:"feedLink"`
-}
-
-// whole user feedlist.
-type FeedList struct {
-	FeedID   bson.ObjectId `bson:"feedID"`
-	Link     string        `bson:"link"`
-	FeedLink string        `bson:"feedLink"`
+	ID               bson.ObjectId   `bson:"_id"`
+	Username         string          `bson:"username"`
+	Password         string          `bson:"password"`
+	Link             []string        `bson:"link"`
+	FeedLink         []string        `bson:"feedLink"`
+	UnReadItems      []bson.ObjectId `bson:"unReadItems"`
+	StarItems        []bson.ObjectId `bson:"starItems"`
+	ReadItLaterItems []bson.ObjectId `bson:"readItLaterItems"`
 }
 
 type Feed struct {
@@ -118,7 +114,6 @@ var DBConfig = struct {
 
 //= =!
 var Users *mgo.Collection
-var FeedLists *mgo.Collection
 var Feeds *mgo.Collection
 var Items *mgo.Collection
 var Sessions *mgo.Collection
@@ -132,7 +127,6 @@ func Init() {
 	fmt.Println("Start dial mongodb!")
 
 	Users = Session.DB("feedall").C("users")
-	FeedLists = Session.DB("feedall").C("feedlists")
 	Feeds = Session.DB("feedall").C("feeds")
 	Items = Session.DB("feedall").C("items")
 	Sessions = Session.DB("feedall").C("sessions")

@@ -18,14 +18,14 @@ type ItemsWrapper struct {
 
 func AddFeed(c *macaron.Context) {
 	feedurl := StandarFeed(c.Query("feedurl"))
-	feedlists := make([]*models.FeedList, 0)
+	feeds := make([]*models.Feed, 0)
 	fmt.Println("start judge!")
-	//Judge if feed existed in feedlist.
-	if !models.FindAll(models.FeedLists, bson.M{"feedLink": feedurl}, &feedlists) {
-		models.FindAll(models.FeedLists, bson.M{"feedLink": Prewww(feedurl)}, &feedlists)
+	//Judge if feed existed in feeds.
+	if !models.FindAll(models.Feeds, bson.M{"feedLink": feedurl}, &feeds) {
+		models.FindAll(models.Feeds, bson.M{"feedLink": Prewww(feedurl)}, &feeds)
 		feedurl = Prewww(feedurl)
 	}
-	if len(feedlists) != 0 {
+	if len(feeds) != 0 {
 		fmt.Println("feeds existed!")
 	} else {
 		fmt.Println("Parse feeds!")
@@ -79,7 +79,6 @@ func AddFeed(c *macaron.Context) {
 			models.Insert(models.Items, &v)
 		}
 
-		models.Insert(models.FeedLists, bson.M{"feedLink": feedurl, "_id": feed.ID, "link": feed.Link})
 	}
 
 }

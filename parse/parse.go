@@ -15,15 +15,15 @@ func Parse() {
 	for {
 		timer := time.NewTimer(60 * time.Second)
 		fmt.Println("start parse!")
-		feedlist := make([]*models.FeedList, 0)
-		if !models.FindAll(models.FeedLists, nil, &feedlist) {
+		feeds := make([]*models.Feed, 0)
+		if !models.FindAll(models.Feeds, nil, &feeds) {
 			fmt.Println(<-timer.C)
 			continue
 		} else {
 			Finish := make(chan string)
 			fb := gofeed.NewParser()
-			for _, u := range feedlist {
-				go func(u *models.FeedList) {
+			for _, u := range feeds {
+				go func(u *models.Feed) {
 					origin_feed, err := fb.ParseURL(u.FeedLink)
 					if err != nil {
 						fmt.Println("Parse err: ", err)
@@ -69,17 +69,12 @@ func Parse() {
 							if info == nil {
 								continue
 							}
-							if info.Updated > 0 {
-								fmt.Printf("updated %d\n", info.Updated)
-							} else {
-								fmt.Println("no new item")
-							}
 						}
 						Finish <- u.FeedLink
 					}
 				}(u)
 			}
-			for _, _ = range feedlist {
+			for _, _ = range feeds {
 				fmt.Println(<-Finish)
 			}
 		}

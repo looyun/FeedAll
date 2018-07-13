@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 	// "encoding/json"
 	"fmt"
 	"net/url"
@@ -11,6 +12,18 @@ import (
 	"gopkg.in/macaron.v1"
 	"gopkg.in/mgo.v2/bson"
 )
+
+func Pagination(c *macaron.Context) (int, int) {
+	page, err := strconv.Atoi(c.Params(":page"))
+	if err != nil {
+		fmt.Println(err)
+	}
+	per_page, err := strconv.Atoi(c.Params(":per_page"))
+	if err != nil {
+		fmt.Println(err)
+	}
+	return page, per_page
+}
 
 func GetUserFeed(c *macaron.Context) {
 	if !CheckLogin(c) {
@@ -74,9 +87,24 @@ func GetUserFeed(c *macaron.Context) {
 		c.Data["Item"] = item
 	}
 }
+func GetFeeds(c *macaron.Context) interface{} {
+
+	page := c.QueryInt("page")
+	if page == 0 {
+		page = 1
+	}
+	per_page := c.QueryInt("per_page")
+	if per_page == 0 {
+		per_page = 20
+	}
+	feeds := []bson.M{}
+	models.Feeds.Find(bson.M{}).Skip((page - 1) * per_page).Limit(per_page).All(&feeds)
+
+	return feeds
+}
 
 func GetFeed(c *macaron.Context) interface{} {
-	feedlink := ParseURL(c.Params("*"))
+	feedlink := ParseURL(c.Params(":feedlink"))
 	feed := bson.M{}
 	models.FindOne(models.Feeds,
 		bson.M{"feedLink": feedlink},
@@ -85,31 +113,46 @@ func GetFeed(c *macaron.Context) interface{} {
 	return feed
 }
 
+func GetItems(c *macaron.Context) interface{} {
+	feedlink := ParseURL(c.Params(":feedlink"))
+	feed := models.Feed{}
+	models.FindOne(models.Feeds,
+		bson.M{"feedLink": feedlink},
+		&feed)
+
+	items := []bson.M{}
+	models.FindAll(models.Items, bson.M{"feedID": feed.ID},
+		&items)
+	return items
+}
 func GetItem(c *macaron.Context) interface{} {
-	itemlink := ParseURL(c.Params("*"))
+	itemlink := ParseURL(c.Params(":itemlink"))
 	item := bson.M{}
-	models.PipeOne(models.Items,
+	models.FindOne(models.Items,
 		bson.M{"link": itemlink},
 		&item)
-	fmt.Println(item)
 	return item
 
 }
 
 func GetRandomItem(c *macaron.Context, n int) interface{} {
+	if n > 100 {
+		return nil
+	}
 	items := []bson.M{}
 	models.PipeAll(models.Items, []bson.M{{"$sample": bson.M{"size": n}}},
 		&items)
-	fmt.Println(items)
 	return items
 
 }
 func GetLatestItem(c *macaron.Context, n int) interface{} {
+	if n > 100 {
+		return nil
+	}
 	items := []bson.M{}
 	models.FindSortLimit(models.Items,
 		bson.M{}, "-publishedParsed", n,
 		&items)
-	fmt.Println(items)
 	return items
 
 }
@@ -123,6 +166,8 @@ func StandarURL(s string) string {
 
 func ParseURL(s string) string {
 	u, err := url.QueryUnescape(s)
-	fmt.Println(err)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return u
 }

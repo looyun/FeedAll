@@ -11,6 +11,7 @@ import (
 	"github.com/looyun/feedall/models"
 	"github.com/looyun/feedall/parse"
 	macaron "gopkg.in/macaron.v1"
+	"gopkg.in/mgo.v2/bson"
 )
 
 const (
@@ -114,30 +115,59 @@ func main() {
 			})
 		})
 
-		m.Get("/feed/*", func(ctx *macaron.Context) {
+		m.Get("/feeds", func(ctx *macaron.Context) {
+			feeds := controllers.GetFeeds(ctx)
+			ctx.JSON(200, &feeds)
+
+		})
+		// m.Get("/feeds/hot/:n:int", func(ctx *macaron.Context) {
+		// 	feed := controllers.GetFeed(ctx)
+		// 	ctx.JSON(200, &feed)
+
+		// })
+
+		m.Get("/feed/:feedlink/", func(ctx *macaron.Context) {
 			feed := controllers.GetFeed(ctx)
 			ctx.JSON(200, &feed)
 
 		})
-		m.Get("/item/*", func(ctx *macaron.Context) {
+		m.Get("/feed/:feedlink/items", func(ctx *macaron.Context) {
+			page := ctx.QueryInt("page")
+			if page == 0 {
+				page = 1
+			}
+			per_page := ctx.QueryInt("per_page")
+			if per_page == 0 {
+				per_page = 20
+			}
+
+			feedlink := controllers.ParseURL(ctx.Params(":feedlink"))
+			feed := models.Feed{}
+			models.FindOne(models.Feeds,
+				bson.M{"feedLink": feedlink},
+				&feed)
+
+			items := []bson.M{}
+			models.Items.Find(bson.M{"feedID": feed.ID}).Sort("-publishedParsed").Skip(per_page * (page - 1)).Limit(per_page).All(&items)
+
+			ctx.JSON(200, &items)
+
+		})
+		m.Get("/item/:itemlink", func(ctx *macaron.Context) {
 			item := controllers.GetItem(ctx)
 			ctx.JSON(200, &item)
 		})
-		m.Get("/item/random/:n:int", func(ctx *macaron.Context) {
-			numbers, _ := strconv.Atoi(ctx.Params(":n"))
+		m.Get("/items/random/:n:int", func(ctx *macaron.Context) {
+			numbers := ctx.ParamsInt(":n")
 			items := controllers.GetRandomItem(ctx, numbers)
-			fmt.Println(ctx.Params(":n"))
-			fmt.Println(numbers)
 			ctx.JSON(200, &items)
 		})
-		m.Get("/item/new/:n:int", func(ctx *macaron.Context) {
-			numbers, _ := strconv.Atoi(ctx.Params(":n"))
+		m.Get("/items/new/:n:int", func(ctx *macaron.Context) {
+			numbers := ctx.ParamsInt(":n")
 			items := controllers.GetLatestItem(ctx, numbers)
-			fmt.Println(ctx.Params(":n"))
-			fmt.Println(numbers)
 			ctx.JSON(200, &items)
 		})
-		// m.Get("/item/hot", func(ctx *macaron.Context) {
+		// m.Get("/items/hot", func(ctx *macaron.Context) {
 		// 	items := controllers.GetItemSample(ctx, 5)
 		// 	ctx.JSON(200, &items)
 		// })
