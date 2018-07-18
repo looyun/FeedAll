@@ -12,9 +12,11 @@ import (
 type User struct {
 	ID               bson.ObjectId   `bson:"_id"`
 	Username         string          `bson:"username"`
+	Lastname         string          `bson:"lastname"`
+	Firstname        string          `bson:"firstname"`
+	Photourl         string          `bson:"photourl"`
 	Password         string          `bson:"password"`
-	Link             []string        `bson:"link"`
-	FeedLink         []string        `bson:"feedLink"`
+	SubscribeFeedID  []bson.ObjectId `bson:"subscribeFeedID"`
 	UnReadItems      []bson.ObjectId `bson:"unReadItems"`
 	StarItems        []bson.ObjectId `bson:"starItems"`
 	ReadItLaterItems []bson.ObjectId `bson:"readItLaterItems"`
@@ -40,6 +42,7 @@ type Feed struct {
 	Custom          map[string]string `bson:"custom"`
 	FeedType        string            `bson:"feedType"`
 	FeedVersion     string            `bson:"feedVersion"`
+	SubscribeCount  int               `bson:"subscribeCount"`
 }
 
 // Item is the universal Item type that atom.Entry
@@ -62,6 +65,7 @@ type Item struct {
 	Enclosures      []*Enclosure      `bson:"enclosures"`
 	Extensions      ext.Extensions    `bson:"extensions"`
 	Custom          map[string]string `bson:"custom"`
+	StarCount       int               `bson:"starCount"`
 }
 
 // Person is an individual specified in a feed

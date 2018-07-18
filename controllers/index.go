@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"strconv"
+
 	// "encoding/json"
 	"fmt"
 	"net/url"
@@ -13,17 +13,7 @@ import (
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Pagination(c *macaron.Context) (int, int) {
-	page, err := strconv.Atoi(c.Params(":page"))
-	if err != nil {
-		fmt.Println(err)
-	}
-	per_page, err := strconv.Atoi(c.Params(":per_page"))
-	if err != nil {
-		fmt.Println(err)
-	}
-	return page, per_page
-}
+var TelegramBotToken string = "123456"
 
 func GetUserFeed(c *macaron.Context) {
 	if !CheckLogin(c) {
@@ -39,7 +29,7 @@ func GetUserFeed(c *macaron.Context) {
 
 		fmt.Println("parse ", user.Username, " feed!")
 		models.FindSort(models.Feeds,
-			bson.M{"feedLink": bson.M{"$in": user.FeedLink}},
+			bson.M{"feedLink": bson.M{"$in": user.SubscribeFeedID}},
 			"items",
 			&feed)
 		if len(feed) == 0 {
@@ -70,7 +60,7 @@ func GetUserFeed(c *macaron.Context) {
 			c.Data["root"] = true
 			models.PipeAll(models.Feeds,
 				[]bson.M{
-					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.FeedLink}}},
+					bson.M{"$match": bson.M{"feedLink": bson.M{"$in": user.SubscribeFeedID}}},
 					bson.M{"$unwind": "$items"},
 					bson.M{"$sort": bson.M{"items.publishedParsed": -1}},
 					bson.M{"$limit": 45},
@@ -87,22 +77,48 @@ func GetUserFeed(c *macaron.Context) {
 		c.Data["Item"] = item
 	}
 }
+
+// GetFeeds get feeds sort by subscribeCount.
 func GetFeeds(c *macaron.Context) interface{} {
 
 	page := c.QueryInt("page")
 	if page == 0 {
 		page = 1
 	}
-	per_page := c.QueryInt("per_page")
-	if per_page == 0 {
-		per_page = 20
+	perPage := c.QueryInt("perPage")
+	if perPage == 0 {
+		perPage = 20
 	}
 	feeds := []bson.M{}
-	models.Feeds.Find(bson.M{}).Skip((page - 1) * per_page).Limit(per_page).All(&feeds)
+	models.Feeds.Find(bson.M{}).Sort("-subscribeCount").Skip((page - 1) * perPage).Limit(perPage).All(&feeds)
 
 	return feeds
 }
 
+// GetFeeds get feeds sort by subscribeCount.
+func GetFeedItems(c *macaron.Context) interface{} {
+
+	page := c.QueryInt("page")
+	if page == 0 {
+		page = 1
+	}
+	perPage := c.QueryInt("perPage")
+	if perPage == 0 {
+		perPage = 20
+	}
+
+	feedlink := ParseURL(c.Params(":feedlink"))
+	feed := bson.M{}
+	models.FindOne(models.Feeds,
+		bson.M{"feedLink": feedlink},
+		&feed)
+	feedID := feed["_id"]
+
+	items := []bson.M{}
+	models.Items.Find(bson.M{"feedID": feedID}).Sort("-publishedParsed").Skip(perPage * (page - 1)).Limit(perPage).All(&items)
+
+	return items
+}
 func GetFeed(c *macaron.Context) interface{} {
 	feedlink := ParseURL(c.Params(":feedlink"))
 	feed := bson.M{}
@@ -113,15 +129,13 @@ func GetFeed(c *macaron.Context) interface{} {
 	return feed
 }
 
-func GetItems(c *macaron.Context) interface{} {
-	feedlink := ParseURL(c.Params(":feedlink"))
-	feed := models.Feed{}
-	models.FindOne(models.Feeds,
-		bson.M{"feedLink": feedlink},
-		&feed)
-
+func GetItems(c *macaron.Context, n int) interface{} {
+	if n > 100 {
+		return nil
+	}
 	items := []bson.M{}
-	models.FindAll(models.Items, bson.M{"feedID": feed.ID},
+	models.FindSortLimit(models.Items,
+		bson.M{}, "-starCount", n,
 		&items)
 	return items
 }
