@@ -16,7 +16,8 @@ func Parse() {
 		timer := time.NewTimer(60 * time.Second)
 		fmt.Println("start parse!")
 		feeds := make([]*models.Feed, 0)
-		if !models.FindAll(models.Feeds, nil, &feeds) {
+		err := models.FindAll(models.Feeds, nil, &feeds)
+		if err != nil {
 			fmt.Println(<-timer.C)
 			continue
 		} else {

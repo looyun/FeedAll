@@ -15,7 +15,7 @@ type User struct {
 	Lastname         string          `bson:"lastname"`
 	Firstname        string          `bson:"firstname"`
 	Photourl         string          `bson:"photourl"`
-	Password         string          `bson:"password"`
+	Hash             string          `bson:"hash"`
 	SubscribeFeedID  []bson.ObjectId `bson:"subscribeFeedID"`
 	UnReadItems      []bson.ObjectId `bson:"unReadItems"`
 	StarItems        []bson.ObjectId `bson:"starItems"`
@@ -136,60 +136,48 @@ func Init() {
 	Sessions = Session.DB("feedall").C("sessions")
 }
 
-func Insert(collection *mgo.Collection, i interface{}) bool {
+func Insert(collection *mgo.Collection, i interface{}) error {
 	err := collection.Insert(i)
-	return Err(err)
+	return err
 }
 
-func FindOne(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func FindOne(collection *mgo.Collection, q interface{}, i interface{}) error {
 	err := collection.Find(q).One(i)
-	return Err(err)
+	return err
 }
 
-func FindAll(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func FindAll(collection *mgo.Collection, q interface{}, i interface{}) error {
 	err := collection.Find(q).All(i)
-	return Err(err)
+	return err
 }
-func FindLimit(collection *mgo.Collection, q interface{}, n int, i interface{}) bool {
+func FindLimit(collection *mgo.Collection, q interface{}, n int, i interface{}) error {
 	err := collection.Find(q).Limit(n).All(i)
-	return Err(err)
+	return err
 }
-func FindSort(collection *mgo.Collection, q interface{}, s string, i interface{}) bool {
+func FindSort(collection *mgo.Collection, q interface{}, s string, i interface{}) error {
 	err := collection.Find(q).Sort(s).All(i)
-	return Err(err)
+	return err
 }
-func FindSortLimit(collection *mgo.Collection, q interface{}, s string, n int, i interface{}) bool {
+func FindSortLimit(collection *mgo.Collection, q interface{}, s string, n int, i interface{}) error {
 	err := collection.Find(q).Sort(s).Limit(n).All(i)
-	return Err(err)
+	return err
 }
 
-func PipeAll(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func PipeAll(collection *mgo.Collection, q interface{}, i interface{}) error {
 	err := collection.Pipe(q).All(i)
-	return Err(err)
+	return err
 }
 
-func PipeOne(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func PipeOne(collection *mgo.Collection, q interface{}, i interface{}) error {
 	err := collection.Pipe(q).One(i)
-	return Err(err)
+	return err
 }
 
-func Update(collection *mgo.Collection, q interface{}, i interface{}) bool {
+func Update(collection *mgo.Collection, q interface{}, i interface{}) error {
 	err := collection.Update(q, i)
-	return Err(err)
+	return err
 }
 func Upsert(collection *mgo.Collection, q interface{}, i interface{}) (info *mgo.ChangeInfo, err error) {
 	return collection.Upsert(q, i)
 
-}
-
-func Err(err error) bool {
-	if err != nil {
-		fmt.Println(err)
-		// 删除时, 查找
-		if err.Error() == "not found" {
-			return false
-		}
-		return false
-	}
-	return true
 }

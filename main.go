@@ -83,39 +83,53 @@ func main() {
 		IndentJSON: true,
 	}))
 	m.SetDefaultCookieSecret("feedall")
+	m.Post("/login", func(ctx *macaron.Context, sess session.Store) {
+		err := controllers.Login(ctx, sess)
+		if err != nil {
+			ctx.Error(400, "error")
+		} else {
+			ctx.Status(200)
+		}
+		return
+	})
+	m.Post("/signin", func(ctx *macaron.Context) {
+		err := controllers.Signin(ctx)
+		fmt.Println(err)
+		if err != nil {
+			ctx.Error(400, "error")
+		} else {
+			ctx.Status(200)
+		}
+	})
+
 	m.Group("/api", func() {
-		m.Group("/user", func() {
+		m.Group("/my", func() {
 
-			m.Post("/login", func(ctx *macaron.Context) {
-				if controllers.Login(ctx) {
-					ctx.Redirect("/")
-				} else {
-					ctx.JSON(200, "login")
-				}
-				return
-			})
-			m.Post("/register", func(ctx *macaron.Context) {
-				controllers.Register(ctx)
-			})
+			// m.Post("/feed", func(ctx *macaron.Context) {
+			// 	ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
+			// 	controllers.GetUserFeed(ctx)
+			// })
 
-			m.Post("/feed", func(ctx *macaron.Context) {
-				ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-				controllers.GetUserFeed(ctx)
-			})
+			// m.Post("/add", func(ctx *macaron.Context) {
+			// 	controllers.AddFeed(ctx)
+			// })
 
-			m.Post("/add", func(ctx *macaron.Context) {
-				controllers.AddFeed(ctx)
-			})
+			// m.Post("/del", func(ctx *macaron.Context) {
+			// 	if controllers.DelFeed(ctx) {
+			// 		fmt.Println("Delete feed succeed!")
+			// 		ctx.Redirect("/manage")
+			// 	} else {
+			// 		fmt.Println("Delete feed false!")
+			// 		ctx.Redirect("/manage")
+			// 	}
+			// })
+		})
 
-			m.Post("/del", func(ctx *macaron.Context) {
-				if controllers.DelFeed(ctx) {
-					fmt.Println("Delete feed succeed!")
-					ctx.Redirect("/manage")
-				} else {
-					fmt.Println("Delete feed false!")
-					ctx.Redirect("/manage")
-				}
-			})
+		m.Get("/my", func(ctx *macaron.Context, sess session.Store) {
+			if controllers.CheckLogin(ctx, sess) {
+				ctx.Status(200)
+			}
+
 		})
 
 		m.Get("/feeds/recommand/:n:int", func(ctx *macaron.Context) {
