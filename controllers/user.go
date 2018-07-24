@@ -1,16 +1,20 @@
 package controllers
 
 import (
-	"github.com/go-macaron/session"
+	"errors"
+	"time"
+
+	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/looyun/feedall/models"
-	uuid "github.com/satori/go.uuid"
 	"golang.org/x/crypto/bcrypt"
 	macaron "gopkg.in/macaron.v1"
 	mgo "gopkg.in/mgo.v2"
 	"gopkg.in/mgo.v2/bson"
 )
 
-func Signin(c *macaron.Context) error {
+var TokenSecure []byte = []byte("feedall")
+
+func Signup(c *macaron.Context) error {
 	username := c.Query("username")
 	password := c.Query("password")
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
@@ -19,10 +23,11 @@ func Signin(c *macaron.Context) error {
 	}
 	err = models.FindOne(models.Users, bson.M{"username": username}, nil)
 
-	if err != nil {
-		if err != mgo.ErrNotFound {
-			return err
-		}
+	if err == nil {
+		return errors.New("user exist.")
+	}
+	if err != mgo.ErrNotFound {
+		return err
 	}
 	user := models.User{
 		ID:       bson.NewObjectId(),
@@ -36,34 +41,28 @@ func Signin(c *macaron.Context) error {
 	return nil
 }
 
-func Login(c *macaron.Context, s session.Store) error {
+func Login(c *macaron.Context) (string, error) {
 	username := c.Query("username")
 	password := c.Query("password")
 	user := models.User{}
 	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
 
 	if err != nil {
-		return err
+		return "", err
 	}
 	hash := user.Hash
 
 	err = bcrypt.CompareHashAndPassword([]byte(hash), []byte(password))
 	if err != nil {
-		return err
+		return "", err
 	}
-	sessionID := uuid.Must(uuid.NewV4())
-	s.Set(sessionID, username)
-	c.SetSecureCookie("user", username)
-	c.SetSecureCookie("session", string(sessionID[:]))
-	return nil
-}
-
-func CheckLogin(c *macaron.Context, s session.Store) bool {
-	session, _ := c.GetSecureCookie("session")
-	username, _ := c.GetSecureCookie("user")
-
-	if s.Get(session) == username {
-		return true
+	token := jwt.New(jwt.SigningMethodHS256)
+	claims := token.Claims.(jwt.MapClaims)
+	claims["name"] = username
+	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
+	t, err := token.SignedString(TokenSecure)
+	if err != nil {
+		return "", err
 	}
-	return false
+	return t, nil
 }

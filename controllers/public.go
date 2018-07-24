@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"net/url"
 	"strings"
+	"time"
 
 	"github.com/looyun/feedall/models"
 
@@ -121,4 +122,48 @@ func ParseURL(s string) string {
 		fmt.Println(err)
 	}
 	return u
+}
+
+func DecodeImg(str string, link string) string {
+	str = strings.Replace(str, "&#34;", "\"", -1)
+	str = strings.Replace(str, "src=\"/", "src=\""+link+"/", -1)
+	return str
+}
+
+func ParseDate(t string) (then time.Time) {
+
+	if len(t) >= 25 {
+		if strings.HasSuffix(t, "0000") {
+			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 +0000", t)
+		} else if strings.HasSuffix(t, "GMT") {
+			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 GMT", t)
+		} else if strings.HasSuffix(t, "UTC") {
+			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 UTC", t)
+		} else if strings.HasSuffix(t, "CST") {
+			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 CST", t)
+		} else if strings.HasSuffix(t, "0400") {
+			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 -0400", t)
+		} else if strings.HasSuffix(t, "Z") {
+			then, _ = time.Parse(time.RFC3339, t)
+		} else if strings.HasSuffix(t, "0800") {
+			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 +0800", t)
+		}
+	} else {
+		if strings.HasSuffix(t, "0000") {
+			then, _ = time.Parse("02 Jan 06 15:04 +0000", t)
+		} else if strings.HasSuffix(t, "GMT") {
+			then, _ = time.Parse("02 Jan 06 15:04 GMT", t)
+		} else if strings.HasSuffix(t, "UTC") {
+			then, _ = time.Parse("02 Jan 06 15:04 UTC", t)
+		} else if strings.HasSuffix(t, "CST") {
+			then, _ = time.Parse("02 Jan 06 15:04 CST", t)
+		} else if strings.HasSuffix(t, "0400") {
+			then, _ = time.Parse("02 Jan 06 15:04 -0400", t)
+		} else if strings.HasSuffix(t, "Z") {
+			then, _ = time.Parse(time.RFC3339, t)
+		} else if strings.HasSuffix(t, "0800") {
+			then, _ = time.Parse("02 Jan 06 15:04 +0800", t)
+		}
+	}
+	return then
 }

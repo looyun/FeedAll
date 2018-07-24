@@ -8,8 +8,8 @@ import (
 	"time"
 
 	"github.com/go-macaron/gzip"
-	"github.com/go-macaron/session"
 	"github.com/looyun/feedall/controllers"
+	"github.com/looyun/feedall/middleware"
 	"github.com/looyun/feedall/models"
 	"github.com/looyun/feedall/parse"
 	macaron "gopkg.in/macaron.v1"
@@ -29,7 +29,6 @@ func main() {
 	models.Init()
 	m := macaron.Classic()
 	m.Use(gzip.Gziper())
-	m.Use(session.Sessioner())
 	go parse.Parse()
 
 	m.Use(macaron.Renderer(macaron.RenderOptions{
@@ -83,19 +82,19 @@ func main() {
 		IndentJSON: true,
 	}))
 	m.SetDefaultCookieSecret("feedall")
-	m.Post("/login", func(ctx *macaron.Context, sess session.Store) {
-		err := controllers.Login(ctx, sess)
+	m.Post("/login", func(ctx *macaron.Context) {
+		token, err := controllers.Login(ctx)
 		if err != nil {
+			fmt.Println(err)
 			ctx.Error(400, "error")
-		} else {
-			ctx.Status(200)
+			return
 		}
-		return
+		ctx.JSON(200, map[string]string{"token": token})
 	})
-	m.Post("/signin", func(ctx *macaron.Context) {
-		err := controllers.Signin(ctx)
-		fmt.Println(err)
+	m.Post("/signup", func(ctx *macaron.Context) {
+		err := controllers.Signup(ctx)
 		if err != nil {
+			fmt.Println(err)
 			ctx.Error(400, "error")
 		} else {
 			ctx.Status(200)
@@ -105,10 +104,11 @@ func main() {
 	m.Group("/api", func() {
 		m.Group("/my", func() {
 
-			// m.Post("/feed", func(ctx *macaron.Context) {
-			// 	ctx.Data["IsLogin"] = controllers.CheckLogin(ctx)
-			// 	controllers.GetUserFeed(ctx)
-			// })
+			m.Post("/feeds", func(ctx *macaron.Context) {
+				feeds := controllers.GetFeeds(ctx)
+				ctx.JSON(200, &feeds)
+
+			})
 
 			// m.Post("/add", func(ctx *macaron.Context) {
 			// 	controllers.AddFeed(ctx)
@@ -123,14 +123,7 @@ func main() {
 			// 		ctx.Redirect("/manage")
 			// 	}
 			// })
-		})
-
-		m.Get("/my", func(ctx *macaron.Context, sess session.Store) {
-			if controllers.CheckLogin(ctx, sess) {
-				ctx.Status(200)
-			}
-
-		})
+		}, middleware.ValidateJWTToken)
 
 		m.Get("/feeds/recommand/:n:int", func(ctx *macaron.Context) {
 			feeds := controllers.GetFeeds(ctx)
