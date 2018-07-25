@@ -58,11 +58,59 @@ func Login(c *macaron.Context) (string, error) {
 	}
 	token := jwt.New(jwt.SigningMethodHS256)
 	claims := token.Claims.(jwt.MapClaims)
-	claims["name"] = username
+	claims["username"] = username
 	claims["exp"] = time.Now().Add(time.Hour * 72).Unix()
 	t, err := token.SignedString(TokenSecure)
 	if err != nil {
 		return "", err
 	}
 	return t, nil
+}
+
+func GetUserFeeds(c *macaron.Context) (interface{}, error) {
+	username := c.Params("username")
+	user := models.User{}
+	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
+	if err != nil {
+		return nil, err
+	}
+	feeds := []models.Feed{}
+	err = models.FindAll(models.Feeds, bson.M{"_id": bson.M{"$in": user.SubscribeFeedID}}, &feeds)
+	if err != nil {
+		return nil, err
+	}
+	return feeds, nil
+
+}
+
+func GetUserItems(c *macaron.Context) (interface{}, error) {
+	username := c.Params("username")
+	user := models.User{}
+	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
+	if err != nil {
+		return nil, err
+	}
+	items := []models.Item{}
+	err = models.FindAll(models.Items, bson.M{"feedID": bson.M{"$in": user.SubscribeFeedID}}, &items)
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
+
+}
+
+func GetStarItems(c *macaron.Context) (interface{}, error) {
+	username := c.Params("username")
+	user := models.User{}
+	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
+	if err != nil {
+		return nil, err
+	}
+	items := []models.Item{}
+	err = models.FindAll(models.Items, bson.M{"_id": bson.M{"$in": user.StarItems}}, &items)
+	if err != nil {
+		return nil, err
+	}
+	return items, nil
+
 }

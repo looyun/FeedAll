@@ -21,6 +21,9 @@ func ValidateJWTToken() macaron.Handler {
 
 		if err == nil {
 			if token.Valid {
+				claims := token.Claims.(jwt.MapClaims)
+				username := claims["username"].(string)
+				ctx.SetParams("username", username)
 				ctx.Next()
 			} else {
 				ctx.Status(http.StatusUnauthorized)

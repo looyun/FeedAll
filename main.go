@@ -100,13 +100,25 @@ func main() {
 			ctx.Status(200)
 		}
 	})
+	m.Post("/item/:feedlink", func(ctx *macaron.Context) {
+	})
 
 	m.Group("/api", func() {
 		m.Group("/my", func() {
 
-			m.Post("/feeds", func(ctx *macaron.Context) {
-				feeds := controllers.GetFeeds(ctx)
+			m.Get("/feeds", func(ctx *macaron.Context) {
+				feeds := controllers.GetUserFeeds(ctx)
 				ctx.JSON(200, &feeds)
+
+			})
+			m.Get("/items", func(ctx *macaron.Context) {
+				items := controllers.GetUserItems(ctx)
+				ctx.JSON(200, &items)
+
+			})
+			m.Get("/stars", func(ctx *macaron.Context) {
+				items := controllers.GetStarItems(ctx)
+				ctx.JSON(200, &items)
 
 			})
 
