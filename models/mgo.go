@@ -10,16 +10,17 @@ import (
 )
 
 type User struct {
-	ID               bson.ObjectId   `bson:"_id"`
-	Username         string          `bson:"username"`
-	Lastname         string          `bson:"lastname"`
-	Firstname        string          `bson:"firstname"`
-	Photourl         string          `bson:"photourl"`
-	Hash             string          `bson:"hash"`
-	SubscribeFeedID  []bson.ObjectId `bson:"subscribeFeedID"`
-	UnReadItems      []bson.ObjectId `bson:"unReadItems"`
-	StarItems        []bson.ObjectId `bson:"starItems"`
-	ReadItLaterItems []bson.ObjectId `bson:"readItLaterItems"`
+	ID                 bson.ObjectId   `bson:"_id"`
+	Username           string          `bson:"username"`
+	Lastname           string          `bson:"lastname"`
+	Firstname          string          `bson:"firstname"`
+	Photourl           string          `bson:"photourl"`
+	Hash               string          `bson:"hash"`
+	SubscribeFeedIDs   []bson.ObjectId `bson:"subscribeFeedIDs"`
+	SubscribeFeedLinks []string        `bson:"subscribeFeedLinks"`
+	UnReadItems        []bson.ObjectId `bson:"unReadItems"`
+	StarItems          []bson.ObjectId `bson:"starItems"`
+	ReadItLaterItems   []bson.ObjectId `bson:"readItLaterItems"`
 }
 
 type Feed struct {

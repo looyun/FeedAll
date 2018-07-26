@@ -107,24 +107,44 @@ func main() {
 		m.Group("/my", func() {
 
 			m.Get("/feeds", func(ctx *macaron.Context) {
-				feeds := controllers.GetUserFeeds(ctx)
-				ctx.JSON(200, &feeds)
+				feeds, err := controllers.GetUserFeeds(ctx)
+				if err != nil {
+					fmt.Println(err)
+					ctx.Error(400, "error")
+				} else {
+					ctx.JSON(200, &feeds)
+				}
 
 			})
 			m.Get("/items", func(ctx *macaron.Context) {
-				items := controllers.GetUserItems(ctx)
-				ctx.JSON(200, &items)
+				items, err := controllers.GetUserItems(ctx)
+				if err != nil {
+					fmt.Println(err)
+					ctx.Error(400, "error")
+				} else {
+					ctx.JSON(200, &items)
+				}
 
 			})
 			m.Get("/stars", func(ctx *macaron.Context) {
-				items := controllers.GetStarItems(ctx)
-				ctx.JSON(200, &items)
+				items, err := controllers.GetStarItems(ctx)
+				if err != nil {
+					fmt.Println(err)
+					ctx.Error(400, "error")
+				} else {
+					ctx.JSON(200, &items)
+				}
 
 			})
-
-			// m.Post("/add", func(ctx *macaron.Context) {
-			// 	controllers.AddFeed(ctx)
-			// })
+			m.Post("/subscribe", func(ctx *macaron.Context) {
+				err := controllers.Subscribe(ctx)
+				if err != nil {
+					fmt.Println(err)
+					ctx.Error(400, "error")
+				} else {
+					ctx.Status(200)
+				}
+			})
 
 			// m.Post("/del", func(ctx *macaron.Context) {
 			// 	if controllers.DelFeed(ctx) {
@@ -135,7 +155,7 @@ func main() {
 			// 		ctx.Redirect("/manage")
 			// 	}
 			// })
-		}, middleware.ValidateJWTToken)
+		}, middleware.ValidateJWTToken())
 
 		m.Get("/feeds/recommand/:n:int", func(ctx *macaron.Context) {
 			feeds := controllers.GetFeeds(ctx)
