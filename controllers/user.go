@@ -70,7 +70,7 @@ func Login(c *macaron.Context) (string, error) {
 }
 
 func GetUserFeeds(c *macaron.Context) (interface{}, error) {
-	username := c.Params("username")
+	username := c.Data["username"]
 	user := models.User{}
 	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
 	if err != nil {
@@ -86,7 +86,7 @@ func GetUserFeeds(c *macaron.Context) (interface{}, error) {
 }
 
 func GetUserItems(c *macaron.Context) (interface{}, error) {
-	username := c.Params("username")
+	username := c.Data["username"]
 	user := models.User{}
 	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
 	if err != nil {
@@ -102,7 +102,7 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 }
 
 func GetStarItems(c *macaron.Context) (interface{}, error) {
-	username := c.Params("username")
+	username := c.Data["username"]
 	user := models.User{}
 	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
 	if err != nil {
