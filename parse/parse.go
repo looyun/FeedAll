@@ -13,7 +13,7 @@ import (
 
 func Parse() {
 	for {
-		timer := time.NewTimer(60 * time.Second)
+		timer := time.NewTimer(600 * time.Second)
 		fmt.Println("start parse!")
 		feeds := make([]*models.Feed, 0)
 		err := models.FindAll(models.Feeds, nil, &feeds)
