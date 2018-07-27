@@ -20,15 +20,18 @@ var TelegramBotToken string = "123456"
 func GetFeeds(c *macaron.Context) interface{} {
 
 	page := c.QueryInt("page")
-	if page == 0 {
-		page = 1
+	if page > 0 {
+		page--
 	}
 	perPage := c.QueryInt("perPage")
 	if perPage == 0 {
-		perPage = 20
+		perPage = 30
+	}
+	if perPage > 100 {
+		perPage = 100
 	}
 	feeds := []bson.M{}
-	models.Feeds.Find(bson.M{}).Sort("-subscribeCount").Skip((page - 1) * perPage).Limit(perPage).All(&feeds)
+	models.Feeds.Find(bson.M{}).Sort("-subscribeCount").Skip(page * perPage).Limit(perPage).All(&feeds)
 
 	return feeds
 }
@@ -37,31 +40,29 @@ func GetFeeds(c *macaron.Context) interface{} {
 func GetFeedItems(c *macaron.Context) interface{} {
 
 	page := c.QueryInt("page")
-	if page == 0 {
-		page = 1
+	if page > 0 {
+		page--
 	}
 	perPage := c.QueryInt("perPage")
 	if perPage == 0 {
-		perPage = 20
+		perPage = 30
+	}
+	if perPage > 100 {
+		perPage = 100
 	}
 
-	feedlink := ParseURL(c.Params(":feedlink"))
-	feed := bson.M{}
-	models.FindOne(models.Feeds,
-		bson.M{"feedLink": feedlink},
-		&feed)
-	feedID := feed["_id"]
+	feedID := c.Params(":id")
 
 	items := []bson.M{}
-	models.Items.Find(bson.M{"feedID": feedID}).Sort("-publishedParsed").Skip(perPage * (page - 1)).Limit(perPage).All(&items)
+	models.Items.Find(bson.M{"feedID": feedID}).Sort("-publishedParsed").Skip(perPage * page).Limit(perPage).All(&items)
 
 	return items
 }
 func GetFeed(c *macaron.Context) interface{} {
-	feedlink := ParseURL(c.Params(":feedlink"))
+	id := c.Params(":id")
 	feed := bson.M{}
 	models.FindOne(models.Feeds,
-		bson.M{"feedLink": feedlink},
+		bson.M{"_id": id},
 		&feed)
 
 	return feed
@@ -78,10 +79,10 @@ func GetItems(c *macaron.Context, n int) interface{} {
 	return items
 }
 func GetItem(c *macaron.Context) interface{} {
-	itemlink := ParseURL(c.Params(":itemlink"))
+	id := c.Params(":id")
 	item := bson.M{}
 	models.FindOne(models.Items,
-		bson.M{"link": itemlink},
+		bson.M{"_id": id},
 		&item)
 	return item
 

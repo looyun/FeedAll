@@ -86,14 +86,26 @@ func GetUserFeeds(c *macaron.Context) (interface{}, error) {
 }
 
 func GetUserItems(c *macaron.Context) (interface{}, error) {
+	page := c.QueryInt("page")
+	if page > 0 {
+		page--
+	}
+	perPage := c.QueryInt("perPage")
+	if perPage == 0 {
+		perPage = 30
+	}
+	if perPage > 100 {
+		perPage = 100
+	}
 	username := c.Data["username"]
 	user := models.User{}
 	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
 	if err != nil {
 		return nil, err
 	}
+
 	items := []models.Item{}
-	err = models.FindAll(models.Items, bson.M{"feedID": bson.M{"$in": user.SubscribeFeedIDs}}, &items)
+	err = models.Items.Find(bson.M{"feedID": bson.M{"$in": user.SubscribeFeedIDs}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
 	if err != nil {
 		return nil, err
 	}
@@ -102,14 +114,26 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 }
 
 func GetStarItems(c *macaron.Context) (interface{}, error) {
+	page := c.QueryInt("page")
+	if page > 0 {
+		page--
+	}
+	perPage := c.QueryInt("perPage")
+	if perPage == 0 {
+		perPage = 30
+	}
+	if perPage > 100 {
+		perPage = 100
+	}
 	username := c.Data["username"]
 	user := models.User{}
 	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
 	if err != nil {
 		return nil, err
 	}
+
 	items := []models.Item{}
-	err = models.FindAll(models.Items, bson.M{"_id": bson.M{"$in": user.StarItems}}, &items)
+	err = models.Items.Find(bson.M{"_id": bson.M{"$in": user.StarItems}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
 	if err != nil {
 		return nil, err
 	}

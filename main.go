@@ -163,17 +163,17 @@ func main() {
 
 		})
 
-		m.Get("/feed/:feedlink/", func(ctx *macaron.Context) {
+		m.Get("/feed/:id/", func(ctx *macaron.Context) {
 			feed := controllers.GetFeed(ctx)
 			ctx.JSON(200, &feed)
 
 		})
-		m.Get("/feed/:feedlink/items", func(ctx *macaron.Context) {
+		m.Get("/feed/:id/items", func(ctx *macaron.Context) {
 			items := controllers.GetFeedItems(ctx)
 			ctx.JSON(200, &items)
 
 		})
-		m.Get("/item/:itemlink", func(ctx *macaron.Context) {
+		m.Get("/item/:id", func(ctx *macaron.Context) {
 			item := controllers.GetItem(ctx)
 			ctx.JSON(200, &item)
 		})
