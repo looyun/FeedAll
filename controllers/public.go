@@ -23,7 +23,7 @@ func GetFeeds(c *macaron.Context) interface{} {
 	if page > 0 {
 		page--
 	}
-	perPage := c.QueryInt("perPage")
+	perPage := c.QueryInt("per_page")
 	if perPage == 0 {
 		perPage = 30
 	}
@@ -46,7 +46,7 @@ func GetFeedItems(c *macaron.Context) interface{} {
 	if page > 0 {
 		page--
 	}
-	perPage := c.QueryInt("perPage")
+	perPage := c.QueryInt("per_page")
 	if perPage == 0 {
 		perPage = 30
 	}

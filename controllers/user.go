@@ -90,7 +90,7 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 	if page > 0 {
 		page--
 	}
-	perPage := c.QueryInt("perPage")
+	perPage := c.QueryInt("per_page")
 	if perPage == 0 {
 		perPage = 30
 	}
@@ -118,7 +118,7 @@ func GetStarItems(c *macaron.Context) (interface{}, error) {
 	if page > 0 {
 		page--
 	}
-	perPage := c.QueryInt("perPage")
+	perPage := c.QueryInt("per_page")
 	if perPage == 0 {
 		perPage = 30
 	}
