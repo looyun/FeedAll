@@ -31,8 +31,11 @@ func GetFeeds(c *macaron.Context) interface{} {
 		perPage = 100
 	}
 	feeds := []bson.M{}
-	models.Feeds.Find(bson.M{}).Sort("-subscribeCount").Skip(page * perPage).Limit(perPage).All(&feeds)
+	err := models.Feeds.Find(bson.M{}).Sort("-subscribeCount").Skip(page * perPage).Limit(perPage).All(&feeds)
 
+	if err != nil {
+		fmt.Println(err)
+	}
 	return feeds
 }
 
@@ -54,16 +57,22 @@ func GetFeedItems(c *macaron.Context) interface{} {
 	feedID := c.Params(":id")
 
 	items := []bson.M{}
-	models.Items.Find(bson.M{"feedID": feedID}).Sort("-publishedParsed").Skip(perPage * page).Limit(perPage).All(&items)
+	err := models.Items.Find(bson.M{"feedID": feedID}).Sort("-publishedParsed").Skip(perPage * page).Limit(perPage).All(&items)
 
+	if err != nil {
+		fmt.Println(err)
+	}
 	return items
 }
 func GetFeed(c *macaron.Context) interface{} {
 	id := c.Params(":id")
 	feed := bson.M{}
-	models.FindOne(models.Feeds,
+	err := models.FindOne(models.Feeds,
 		bson.M{"_id": id},
 		&feed)
+	if err != nil {
+		fmt.Println(err)
+	}
 
 	return feed
 }
@@ -73,17 +82,23 @@ func GetItems(c *macaron.Context, n int) interface{} {
 		return nil
 	}
 	items := []bson.M{}
-	models.FindSortLimit(models.Items,
+	err := models.FindSortLimit(models.Items,
 		bson.M{}, "-starCount", n,
 		&items)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return items
 }
 func GetItem(c *macaron.Context) interface{} {
 	id := c.Params(":id")
 	item := bson.M{}
-	models.FindOne(models.Items,
+	err := models.FindOne(models.Items,
 		bson.M{"_id": id},
 		&item)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return item
 
 }
@@ -93,8 +108,11 @@ func GetRandomItem(c *macaron.Context, n int) interface{} {
 		return nil
 	}
 	items := []bson.M{}
-	models.PipeAll(models.Items, []bson.M{{"$sample": bson.M{"size": n}}},
+	err := models.PipeAll(models.Items, []bson.M{{"$sample": bson.M{"size": n}}},
 		&items)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return items
 
 }
@@ -103,9 +121,12 @@ func GetLatestItem(c *macaron.Context, n int) interface{} {
 		return nil
 	}
 	items := []bson.M{}
-	models.FindSortLimit(models.Items,
+	err := models.FindSortLimit(models.Items,
 		bson.M{}, "-publishedParsed", n,
 		&items)
+	if err != nil {
+		fmt.Println(err)
+	}
 	return items
 
 }
