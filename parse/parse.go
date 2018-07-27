@@ -60,6 +60,7 @@ func Parse() {
 							publishedParsed := controllers.ParseDate(v.Published)
 							v.PublishedParsed = strconv.FormatInt(publishedParsed.Unix(), 10)
 							v.FeedID = feed.ID
+							v.ID = bson.NewObjectId()
 
 							info, err := models.Upsert(models.Items,
 								bson.M{"link": v.Link},
