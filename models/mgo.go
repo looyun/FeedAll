@@ -139,47 +139,26 @@ func Init() {
 }
 
 func Insert(collection *mgo.Collection, i interface{}) error {
-	err := collection.Insert(i)
-	return err
+	return collection.Insert(i)
 }
-
 func FindOne(collection *mgo.Collection, q interface{}, i interface{}) error {
-	err := collection.Find(q).One(i)
-	return err
+	return collection.Find(q).One(i)
 }
-
 func FindAll(collection *mgo.Collection, q interface{}, i interface{}) error {
-	err := collection.Find(q).All(i)
-	return err
-}
-func FindLimit(collection *mgo.Collection, q interface{}, n int, i interface{}) error {
-	err := collection.Find(q).Limit(n).All(i)
-	return err
-}
-func FindSort(collection *mgo.Collection, q interface{}, s string, i interface{}) error {
-	err := collection.Find(q).Sort(s).All(i)
-	return err
+	return collection.Find(q).All(i)
 }
 func FindSortLimit(collection *mgo.Collection, q interface{}, s string, n int, i interface{}) error {
-	err := collection.Find(q).Sort(s).Limit(n).All(i)
-	return err
+	return collection.Find(q).Sort(s).Limit(n).All(i)
 }
-
 func PipeAll(collection *mgo.Collection, q interface{}, i interface{}) error {
-	err := collection.Pipe(q).All(i)
-	return err
+	return collection.Pipe(q).All(i)
 }
-
 func PipeOne(collection *mgo.Collection, q interface{}, i interface{}) error {
-	err := collection.Pipe(q).One(i)
-	return err
+	return collection.Pipe(q).One(i)
 }
-
 func Update(collection *mgo.Collection, q interface{}, i interface{}) error {
-	err := collection.Update(q, i)
-	return err
+	return collection.Update(q, i)
 }
 func Upsert(collection *mgo.Collection, q interface{}, i interface{}) (info *mgo.ChangeInfo, err error) {
 	return collection.Upsert(q, i)
-
 }
