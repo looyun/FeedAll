@@ -7,7 +7,6 @@ import (
 
 	jwt "github.com/dgrijalva/jwt-go"
 	"github.com/looyun/feedall/models"
-	"github.com/mmcdole/gofeed"
 	"golang.org/x/crypto/bcrypt"
 	macaron "gopkg.in/macaron.v1"
 	mgo "gopkg.in/mgo.v2"
@@ -145,16 +144,12 @@ func Subscribe(c *macaron.Context) error {
 	username := c.Data["username"]
 	feedurl := c.Query("feedurl")
 
-	// parse feed url
-	fb := gofeed.NewParser()
-	origin_feed, err := fb.ParseURL(feedurl)
-	if err != nil {
-		fmt.Println("Parse err: ", err)
-	}
-
-	// if user subscribe this feed or not
-	user := models.User{}
-	err = models.FindOne(models.Users, bson.M{"$and": []bson.M{bson.M{"username": username}, bson.M{"link": origin_feed.Link}}}, &user)
+	//tell if user subscribe this feed or not
+	err := models.FindOne(models.Users,
+		bson.M{
+			"$and": []bson.M{
+				bson.M{"username": username}, bson.M{"subscribeFeedURLs": feedurl}}},
+		nil)
 
 	if err != nil {
 		if err == mgo.ErrNotFound {
@@ -167,9 +162,11 @@ func Subscribe(c *macaron.Context) error {
 		return nil
 	}
 
+	//tell if feed exist or not
 	result := bson.M{}
-	err = models.FindOne(models.Feeds,
-		bson.M{"link": origin_feed.Link},
+	err = models.FindOne(
+		models.Feeds,
+		bson.M{"feedURLs": feedurl},
 		&result)
 
 	if err != nil {
@@ -182,14 +179,7 @@ func Subscribe(c *macaron.Context) error {
 		fmt.Println("Exist feed.")
 		err = models.Update(models.Users,
 			bson.M{"username": username},
-			bson.M{"$addToSet": bson.M{"subscribeFeedLinks": feedurl}},
-		)
-		if err != nil {
-			return err
-		}
-		err = models.Update(models.Users,
-			bson.M{"username": username},
-			bson.M{"$addToSet": bson.M{"subscribeFeedIDs": result["_id"].(bson.ObjectId)}},
+			bson.M{"$addToSet": bson.M{"subscribeFeedURLs": feedurl}},
 		)
 		if err != nil {
 			return err
@@ -197,35 +187,22 @@ func Subscribe(c *macaron.Context) error {
 		return nil
 	}
 
-	bs_feed, err := bson.Marshal(origin_feed)
+	feed, err := ParseURL(feedurl)
 	if err != nil {
 		return err
 	}
-	feed := models.Feed{}
-	err = bson.Unmarshal(bs_feed, &feed)
-	if err != nil {
-		return err
-	}
-	if feed.FeedLink == "" {
-		feed.FeedLink = feedurl
-	}
-	id := bson.NewObjectId()
-	feed.ID = id
 	err = models.Insert(models.Feeds, feed)
+	if err != nil {
+		return err
+	}
+	err = UpdateItems(feed.(models.Feed))
 	if err != nil {
 		return err
 	}
 
 	err = models.Update(models.Users,
 		bson.M{"username": username},
-		bson.M{"$addToSet": bson.M{"subscribeFeedLinks": feedurl}},
-	)
-	if err != nil {
-		return err
-	}
-	err = models.Update(models.Users,
-		bson.M{"username": username},
-		bson.M{"$addToSet": bson.M{"subscribeFeedIDs": id}},
+		bson.M{"$addToSet": bson.M{"subscribeFeedURLs": feedurl}},
 	)
 	if err != nil {
 		return err

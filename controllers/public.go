@@ -4,17 +4,75 @@ import (
 
 	// "encoding/json"
 	"fmt"
-	"net/url"
 	"strings"
 	"time"
 
 	"github.com/looyun/feedall/models"
+	"github.com/mmcdole/gofeed"
 
 	"gopkg.in/macaron.v1"
 	"gopkg.in/mgo.v2/bson"
 )
 
 var TelegramBotToken string = "123456"
+
+func ParseURL(feedurl string) (interface{}, error) {
+
+	// parse feed url
+	fp := gofeed.NewParser()
+	parsed_feed, err := fp.ParseURL(feedurl)
+	if err != nil {
+		return nil, err
+	}
+
+	bs_feed, err := bson.Marshal(parsed_feed)
+	if err != nil {
+		return nil, err
+	}
+	feed := models.Feed{}
+	err = bson.Unmarshal(bs_feed, &feed)
+	if err != nil {
+		return nil, err
+	}
+
+	feed.FeedURL = feedurl
+	feed.ID = bson.NewObjectId()
+	return feed, nil
+}
+
+func UpdateItems(feed models.Feed) error {
+	feedurl := feed.FeedURL
+
+	// parse feed url
+	fp := gofeed.NewParser()
+	parsed_feed, err := fp.ParseURL(feedurl)
+	if err != nil {
+		return err
+	}
+
+	bs_items, err := bson.Marshal(parsed_feed.Items)
+	if err != nil {
+		return err
+	}
+
+	items := []models.Item{}
+	err = bson.Unmarshal(bs_items, &items)
+	if err != nil {
+		return err
+	}
+	for _, item := range items {
+		item.FeedID = feed.ID
+		_, err := models.Upsert(models.Items,
+			bson.M{
+				"$and": []bson.M{
+					bson.M{"feedID": feed.ID}, bson.M{"link": item.Link}}},
+			item)
+		if err != nil {
+			return err
+		}
+	}
+	return nil
+}
 
 // GetFeeds get feeds sort by subscribeCount.
 func GetFeeds(c *macaron.Context) interface{} {
@@ -136,14 +194,6 @@ func StandarURL(s string) string {
 		s = s + "/"
 	}
 	return s
-}
-
-func ParseURL(s string) string {
-	u, err := url.QueryUnescape(s)
-	if err != nil {
-		fmt.Println(err)
-	}
-	return u
 }
 
 func DecodeImg(str string, link string) string {

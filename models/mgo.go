@@ -10,21 +10,23 @@ import (
 )
 
 type User struct {
-	ID                 bson.ObjectId   `bson:"_id"`
-	Username           string          `bson:"username"`
-	Lastname           string          `bson:"lastname"`
-	Firstname          string          `bson:"firstname"`
-	Photourl           string          `bson:"photourl"`
-	Hash               string          `bson:"hash"`
-	SubscribeFeedIDs   []bson.ObjectId `bson:"subscribeFeedIDs"`
-	SubscribeFeedLinks []string        `bson:"subscribeFeedLinks"`
-	UnReadItems        []bson.ObjectId `bson:"unReadItems"`
-	StarItems          []bson.ObjectId `bson:"starItems"`
-	ReadItLaterItems   []bson.ObjectId `bson:"readItLaterItems"`
+	ID                bson.ObjectId   `bson:"_id"`
+	Username          string          `bson:"username"`
+	Lastname          string          `bson:"lastname"`
+	Firstname         string          `bson:"firstname"`
+	Photourl          string          `bson:"photourl"`
+	Hash              string          `bson:"hash"`
+	SubscribeFeedIDs  []bson.ObjectId `bson:"subscribeFeedIDs"`
+	SubscribeFeedURLs []string        `bson:"subscribeFeedURLs"`
+	UnReadItems       []bson.ObjectId `bson:"unReadItems"`
+	StarItems         []bson.ObjectId `bson:"starItems"`
+	ReadItLaterItems  []bson.ObjectId `bson:"readItLaterItems"`
 }
 
+// Unique field "FeedURL" in order to prevent feed polution
 type Feed struct {
 	ID              bson.ObjectId     `bson:"_id"`
+	FeedURL         string            `bson:"feedURL"`
 	Title           string            `bson:"title"`
 	Description     string            `bson:"description"`
 	Link            string            `bson:"link"`
@@ -50,7 +52,6 @@ type Feed struct {
 // and rss.Item gets translated to.  It represents
 // a single entry in a given feed.
 type Item struct {
-	ID              bson.ObjectId     `bson:"_id"`
 	FeedID          bson.ObjectId     `bson:"feedID"`
 	Title           string            `bson:"title"`
 	Description     string            `bson:"description"`
