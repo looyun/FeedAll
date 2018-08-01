@@ -35,8 +35,11 @@ func InsertFeedAndUpdateItems(feedurl string) error {
 	if err != nil {
 		return err
 	}
+	feed.FeedURL = feedurl
 	feed.ID = bson.NewObjectId()
-	err = models.Insert(models.Feeds, feed)
+	_, err = models.Upsert(models.Feeds,
+		bson.M{"feedURL": feedurl},
+		feed)
 	if err != nil {
 		return err
 	}
