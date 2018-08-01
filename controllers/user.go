@@ -17,6 +17,9 @@ var TokenSecure []byte = []byte("feedall")
 
 func Signup(c *macaron.Context) error {
 	username := c.Query("username")
+	if username == "" {
+		return fmt.Errorf("Invalid username %s", username)
+	}
 	password := c.Query("password")
 	hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
 	if err != nil {
