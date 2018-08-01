@@ -79,7 +79,7 @@ func GetUserFeeds(c *macaron.Context) (interface{}, error) {
 		return nil, err
 	}
 	feeds := []models.Feed{}
-	err = models.FindAll(models.Feeds, bson.M{"_id": bson.M{"$in": user.SubscribeFeedIDs}}, &feeds)
+	err = models.FindAll(models.Feeds, bson.M{"feedURL": bson.M{"$in": user.SubscribeFeedURLs}}, &feeds)
 	if err != nil {
 		return nil, err
 	}
@@ -107,7 +107,7 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 	}
 
 	items := []models.Item{}
-	err = models.Items.Find(bson.M{"feedID": bson.M{"$in": user.SubscribeFeedIDs}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
+	err = models.Items.Find(bson.M{"feedURL": bson.M{"$in": user.SubscribeFeedURLs}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
 	if err != nil {
 		return nil, err
 	}
@@ -192,6 +192,13 @@ func Subscribe(c *macaron.Context) error {
 
 	// Insert feed and update items
 	err = InsertFeedAndUpdateItems(feedurl)
+	if err != nil {
+		return err
+	}
+	err = models.Update(models.Users,
+		bson.M{"username": username},
+		bson.M{"$addToSet": bson.M{"subscribeFeedURLs": feedurl}},
+	)
 	if err != nil {
 		return err
 	}

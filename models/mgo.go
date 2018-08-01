@@ -16,7 +16,6 @@ type User struct {
 	Firstname         string          `bson:"firstname"`
 	Photourl          string          `bson:"photourl"`
 	Hash              string          `bson:"hash"`
-	SubscribeFeedIDs  []bson.ObjectId `bson:"subscribeFeedIDs"`
 	SubscribeFeedURLs []string        `bson:"subscribeFeedURLs"`
 	UnReadItems       []bson.ObjectId `bson:"unReadItems"`
 	StarItems         []bson.ObjectId `bson:"starItems"`
