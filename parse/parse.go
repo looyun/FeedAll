@@ -25,7 +25,7 @@ func Parse() {
 					if err != nil {
 						fmt.Println(err)
 					}
-					Finish <- feed.FeedLink
+					Finish <- feed.FeedURL
 				}(feed)
 			}
 			for _, _ = range feeds {

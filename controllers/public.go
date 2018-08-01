@@ -16,51 +16,79 @@ import (
 
 var TelegramBotToken string = "123456"
 
-func ParseURL(feedurl string) (interface{}, error) {
-
+func InsertFeedAndUpdateItems(feedurl string) error {
 	// parse feed url
 	fp := gofeed.NewParser()
-	parsed_feed, err := fp.ParseURL(feedurl)
+	parsedFeed, err := fp.ParseURL(feedurl)
 	if err != nil {
-		return nil, err
+		return err
 	}
 
-	bs_feed, err := bson.Marshal(parsed_feed)
+	bsonFeed, err := bson.Marshal(parsedFeed)
 	if err != nil {
-		return nil, err
-	}
-	feed := models.Feed{}
-	err = bson.Unmarshal(bs_feed, &feed)
-	if err != nil {
-		return nil, err
+		return err
 	}
 
-	feed.FeedURL = feedurl
+	// Insert feed
+	feed := &models.Feed{}
+	err = bson.Unmarshal(bsonFeed, &feed)
+	if err != nil {
+		return err
+	}
 	feed.ID = bson.NewObjectId()
-	return feed, nil
+	err = models.Insert(models.Feeds, feed)
+	if err != nil {
+		return err
+	}
+
+	// Update items
+	var data struct {
+		Items []models.Item `bson:"items"`
+	}
+	err = bson.Unmarshal(bsonFeed, &data)
+	if err != nil {
+		return err
+	}
+	for _, item := range data.Items {
+		item.FeedID = feed.ID
+		_, err := models.Upsert(models.Items,
+			bson.M{
+				"$and": []bson.M{
+					bson.M{"feedID": feed.ID}, bson.M{"link": item.Link}}},
+			item)
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
 }
 
-func UpdateItems(feed models.Feed) error {
+func UpdateItems(feed *models.Feed) error {
+
 	feedurl := feed.FeedURL
 
 	// parse feed url
 	fp := gofeed.NewParser()
-	parsed_feed, err := fp.ParseURL(feedurl)
+	parsedFeed, err := fp.ParseURL(feedurl)
 	if err != nil {
 		return err
 	}
 
-	bs_items, err := bson.Marshal(parsed_feed.Items)
+	bsonFeed, err := bson.Marshal(parsedFeed)
 	if err != nil {
 		return err
 	}
 
-	items := []models.Item{}
-	err = bson.Unmarshal(bs_items, &items)
+	var data struct {
+		Items []models.Item `bson:"items"`
+	}
+	err = bson.Unmarshal(bsonFeed, &data)
 	if err != nil {
 		return err
 	}
-	for _, item := range items {
+
+	for _, item := range data.Items {
 		item.FeedID = feed.ID
 		_, err := models.Upsert(models.Items,
 			bson.M{

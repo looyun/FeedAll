@@ -187,23 +187,8 @@ func Subscribe(c *macaron.Context) error {
 		return nil
 	}
 
-	feed, err := ParseURL(feedurl)
-	if err != nil {
-		return err
-	}
-	err = models.Insert(models.Feeds, feed)
-	if err != nil {
-		return err
-	}
-	err = UpdateItems(feed.(models.Feed))
-	if err != nil {
-		return err
-	}
-
-	err = models.Update(models.Users,
-		bson.M{"username": username},
-		bson.M{"$addToSet": bson.M{"subscribeFeedURLs": feedurl}},
-	)
+	// Insert feed and update items
+	err = InsertFeedAndUpdateItems(feedurl)
 	if err != nil {
 		return err
 	}
