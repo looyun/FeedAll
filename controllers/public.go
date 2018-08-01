@@ -64,7 +64,7 @@ func InsertFeedAndUpdateItems(feedurl string) error {
 	return nil
 }
 
-func UpdateItems(feed *models.Feed) error {
+func UpdateItems(feed models.Feed) error {
 
 	feedurl := feed.FeedURL
 
