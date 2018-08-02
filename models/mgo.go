@@ -51,6 +51,7 @@ type Feed struct {
 // and rss.Item gets translated to.  It represents
 // a single entry in a given feed.
 type Item struct {
+	ID              bson.ObjectId     `bson:"_id"`
 	FeedID          bson.ObjectId     `bson:"feedID"`
 	Title           string            `bson:"title"`
 	Description     string            `bson:"description"`

@@ -99,7 +99,7 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 	items := []models.Item{}
 	m := []bson.M{
 		{"$lookup": bson.M{
-			"from":         "suites",
+			"from":         "feeds",
 			"localField":   "feedID",
 			"foreignField": "_id",
 			"as":           "feed"}},
