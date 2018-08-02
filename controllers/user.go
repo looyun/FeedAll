@@ -72,14 +72,9 @@ func Login(c *macaron.Context) (string, error) {
 }
 
 func GetUserFeeds(c *macaron.Context) (interface{}, error) {
-	username := c.Data["username"]
-	user := models.User{}
-	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
-	if err != nil {
-		return nil, err
-	}
+	user := c.Data["user"].(models.User)
 	feeds := []models.Feed{}
-	err = models.FindAll(models.Feeds, bson.M{"feedURL": bson.M{"$in": user.SubscribeFeedURLs}}, &feeds)
+	err := models.FindAll(models.Feeds, bson.M{"feedURL": bson.M{"$in": user.SubscribeFeedURLs}}, &feeds)
 	if err != nil {
 		return nil, err
 	}
@@ -99,15 +94,22 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 	if perPage > 100 {
 		perPage = 100
 	}
-	username := c.Data["username"]
-	user := models.User{}
-	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
-	if err != nil {
-		return nil, err
-	}
+	user := c.Data["user"].(models.User)
 
 	items := []models.Item{}
-	err = models.Items.Find(bson.M{"feedURL": bson.M{"$in": user.SubscribeFeedURLs}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
+	m := []bson.M{
+		{"$lookup": bson.M{
+			"from":         "suites",
+			"localField":   "feedID",
+			"foreignField": "_id",
+			"as":           "feed"}},
+		{"$match": bson.M{"feed.feedURL": bson.M{"$in": user.SubscribeFeedURLs}}},
+		{"$sort": "-publishedParsed"},
+		{"$skip": page * perPage},
+		{"$limit": perPage},
+	}
+	err := models.Items.Pipe(m).All(&items)
+
 	if err != nil {
 		return nil, err
 	}
@@ -127,15 +129,10 @@ func GetStarItems(c *macaron.Context) (interface{}, error) {
 	if perPage > 100 {
 		perPage = 100
 	}
-	username := c.Data["username"]
-	user := models.User{}
-	err := models.FindOne(models.Users, bson.M{"username": username}, &user)
-	if err != nil {
-		return nil, err
-	}
+	user := c.Data["user"].(models.User)
 
 	items := []models.Item{}
-	err = models.Items.Find(bson.M{"_id": bson.M{"$in": user.StarItems}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
+	err := models.Items.Find(bson.M{"_id": bson.M{"$in": user.StarItems}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
 	if err != nil {
 		return nil, err
 	}
@@ -144,30 +141,21 @@ func GetStarItems(c *macaron.Context) (interface{}, error) {
 }
 
 func Subscribe(c *macaron.Context) error {
-	username := c.Data["username"]
+	user := c.Data["user"].(models.User)
 	feedurl := c.Query("feedurl")
 
 	//tell if user subscribe this feed or not
-	err := models.FindOne(models.Users,
-		bson.M{
-			"$and": []bson.M{
-				bson.M{"username": username}, bson.M{"subscribeFeedURLs": feedurl}}},
-		nil)
-
-	if err != nil {
-		if err == mgo.ErrNotFound {
-			fmt.Println("not subscribe yet.")
-		} else {
-			return err
+	for _, url := range user.SubscribeFeedURLs {
+		if feedurl == url {
+			fmt.Println("Already subscribe.")
+			return nil
 		}
-	} else {
-		fmt.Println("Already subscribe.")
-		return nil
 	}
+	fmt.Println("not subscribe yet.")
 
 	//tell if feed exist or not
 	result := bson.M{}
-	err = models.FindOne(
+	err := models.FindOne(
 		models.Feeds,
 		bson.M{"feedURLs": feedurl},
 		&result)
@@ -175,28 +163,20 @@ func Subscribe(c *macaron.Context) error {
 	if err != nil {
 		if err == mgo.ErrNotFound {
 			fmt.Println("Not exist feed.")
+			// Insert feed and update items
+			err = InsertFeedAndUpdateItems(feedurl)
+			if err != nil {
+				return err
+			}
 		} else {
 			return err
 		}
 	} else {
 		fmt.Println("Exist feed.")
-		err = models.Update(models.Users,
-			bson.M{"username": username},
-			bson.M{"$addToSet": bson.M{"subscribeFeedURLs": feedurl}},
-		)
-		if err != nil {
-			return err
-		}
-		return nil
 	}
 
-	// Insert feed and update items
-	err = InsertFeedAndUpdateItems(feedurl)
-	if err != nil {
-		return err
-	}
 	err = models.Update(models.Users,
-		bson.M{"username": username},
+		bson.M{"username": user.Username},
 		bson.M{"$addToSet": bson.M{"subscribeFeedURLs": feedurl}},
 	)
 	if err != nil {
