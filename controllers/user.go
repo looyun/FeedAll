@@ -104,7 +104,7 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 			"foreignField": "_id",
 			"as":           "feed"}},
 		{"$match": bson.M{"feed.feedURL": bson.M{"$in": user.SubscribeFeedURLs}}},
-		{"$sort": "-publishedParsed"},
+		{"$sort": bson.M{"publishedParsed": -1}},
 		{"$skip": page * perPage},
 		{"$limit": perPage},
 	}
