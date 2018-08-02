@@ -73,7 +73,7 @@ func Login(c *macaron.Context) (string, error) {
 
 func GetUserFeeds(c *macaron.Context) (interface{}, error) {
 	user := c.Data["user"].(models.User)
-	feeds := []models.Feed{}
+	feeds := []bson.M{}
 	err := models.FindAll(models.Feeds, bson.M{"feedURL": bson.M{"$in": user.SubscribeFeedURLs}}, &feeds)
 	if err != nil {
 		return nil, err
@@ -96,7 +96,7 @@ func GetUserItems(c *macaron.Context) (interface{}, error) {
 	}
 	user := c.Data["user"].(models.User)
 
-	items := []models.Item{}
+	items := []bson.M{}
 	m := []bson.M{
 		{"$lookup": bson.M{
 			"from":         "feeds",
@@ -131,7 +131,7 @@ func GetStarItems(c *macaron.Context) (interface{}, error) {
 	}
 	user := c.Data["user"].(models.User)
 
-	items := []models.Item{}
+	items := []bson.M{}
 	err := models.Items.Find(bson.M{"_id": bson.M{"$in": user.StarItems}}).Sort("-publishedParsed").Skip(page * perPage).Limit(perPage).All(&items)
 	if err != nil {
 		return nil, err

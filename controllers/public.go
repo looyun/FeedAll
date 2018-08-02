@@ -146,7 +146,7 @@ func GetFeedItems(c *macaron.Context) interface{} {
 	feedID := c.Params(":id")
 
 	items := []bson.M{}
-	err := models.Items.Find(bson.M{"feedID": feedID}).Sort("-publishedParsed").Skip(perPage * page).Limit(perPage).All(&items)
+	err := models.Items.Find(bson.M{"feedID": bson.ObjectIdHex(feedID)}).Sort("-publishedParsed").Skip(perPage * page).Limit(perPage).All(&items)
 
 	if err != nil {
 		fmt.Println(err)
@@ -157,7 +157,7 @@ func GetFeed(c *macaron.Context) interface{} {
 	id := c.Params(":id")
 	feed := bson.M{}
 	err := models.FindOne(models.Feeds,
-		bson.M{"_id": id},
+		bson.M{"_id": bson.ObjectIdHex(id)},
 		&feed)
 	if err != nil {
 		fmt.Println(err)
@@ -183,7 +183,7 @@ func GetItem(c *macaron.Context) interface{} {
 	id := c.Params(":id")
 	item := bson.M{}
 	err := models.FindOne(models.Items,
-		bson.M{"_id": id},
+		bson.M{"_id": bson.ObjectIdHex(id)},
 		&item)
 	if err != nil {
 		fmt.Println(err)
