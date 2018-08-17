@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"strconv"
 
 	// "encoding/json"
 	"fmt"
@@ -233,40 +234,21 @@ func DecodeImg(str string, link string) string {
 	return str
 }
 
-func ParseDate(t string) (then time.Time) {
+func ParseDate(d string) (ts time.Time) {
+	length := len(d)
 
-	if len(t) >= 25 {
-		if strings.HasSuffix(t, "0000") {
-			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 +0000", t)
-		} else if strings.HasSuffix(t, "GMT") {
-			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 GMT", t)
-		} else if strings.HasSuffix(t, "UTC") {
-			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 UTC", t)
-		} else if strings.HasSuffix(t, "CST") {
-			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 CST", t)
-		} else if strings.HasSuffix(t, "0400") {
-			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 -0400", t)
-		} else if strings.HasSuffix(t, "Z") {
-			then, _ = time.Parse(time.RFC3339, t)
-		} else if strings.HasSuffix(t, "0800") {
-			then, _ = time.Parse("Mon, 02 Jan 2006 15:04:05 +0800", t)
+	if length >= 25 {
+		if _, err := strconv.Atoi(d[length-1:]); err == nil {
+			ts, _ = time.Parse(time.RFC1123, d)
+		} else {
+			ts, _ = time.Parse(time.RFC1123Z, d)
 		}
 	} else {
-		if strings.HasSuffix(t, "0000") {
-			then, _ = time.Parse("02 Jan 06 15:04 +0000", t)
-		} else if strings.HasSuffix(t, "GMT") {
-			then, _ = time.Parse("02 Jan 06 15:04 GMT", t)
-		} else if strings.HasSuffix(t, "UTC") {
-			then, _ = time.Parse("02 Jan 06 15:04 UTC", t)
-		} else if strings.HasSuffix(t, "CST") {
-			then, _ = time.Parse("02 Jan 06 15:04 CST", t)
-		} else if strings.HasSuffix(t, "0400") {
-			then, _ = time.Parse("02 Jan 06 15:04 -0400", t)
-		} else if strings.HasSuffix(t, "Z") {
-			then, _ = time.Parse(time.RFC3339, t)
-		} else if strings.HasSuffix(t, "0800") {
-			then, _ = time.Parse("02 Jan 06 15:04 +0800", t)
+		if _, err := strconv.Atoi(d[length-1:]); err == nil {
+			ts, _ = time.Parse(time.RFC822, d)
+		} else {
+			ts, _ = time.Parse(time.RFC822Z, d)
 		}
 	}
-	return then
+	return ts
 }

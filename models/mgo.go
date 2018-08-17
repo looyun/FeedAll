@@ -59,7 +59,7 @@ type Item struct {
 	Updated         string            `bson:"updated"`
 	UpdatedParsed   *time.Time        `bson:"updatedParsed"`
 	Published       string            `bson:"published"`
-	PublishedParsed string            `bson:"publishedParsed"`
+	PublishedParsed *time.Time        `bson:"publishedParsed"`
 	Author          *Person           `bson:"author"`
 	GUID            string            `bson:"guid"`
 	Image           *Image            `bson:"image"`
