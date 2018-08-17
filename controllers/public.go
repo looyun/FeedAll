@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"encoding/json"
 	"strconv"
 
 	// "encoding/json"
@@ -25,14 +26,14 @@ func InsertFeedAndUpdateItems(feedurl string) error {
 		return err
 	}
 
-	bsonFeed, err := bson.Marshal(parsedFeed)
+	jsonFeed, err := json.Marshal(parsedFeed)
 	if err != nil {
 		return err
 	}
 
 	// Insert feed
 	feed := &models.Feed{}
-	err = bson.Unmarshal(bsonFeed, &feed)
+	err = json.Unmarshal(jsonFeed, &feed)
 	if err != nil {
 		return err
 	}
@@ -47,9 +48,9 @@ func InsertFeedAndUpdateItems(feedurl string) error {
 
 	// Update items
 	var data struct {
-		Items []models.Item `bson:"items"`
+		Items []models.Item `json:"items"`
 	}
-	err = bson.Unmarshal(bsonFeed, &data)
+	err = json.Unmarshal(jsonFeed, &data)
 	if err != nil {
 		return err
 	}
@@ -79,15 +80,15 @@ func UpdateItems(feed models.Feed) error {
 		return err
 	}
 
-	bsonFeed, err := bson.Marshal(parsedFeed)
+	jsonFeed, err := json.Marshal(parsedFeed)
 	if err != nil {
 		return err
 	}
 
 	var data struct {
-		Items []models.Item `bson:"items"`
+		Items []models.Item `json:"items"`
 	}
-	err = bson.Unmarshal(bsonFeed, &data)
+	err = json.Unmarshal(jsonFeed, &data)
 	if err != nil {
 		return err
 	}
